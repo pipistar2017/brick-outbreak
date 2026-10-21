@@ -1,0 +1,119 @@
+SOURCE CHECKS
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS: all beveled armor faces point outward
+PASS: hero 0 stats
+PASS: hero 0 detailed model is used in battle
+PASS: hero 0 articulated walking
+PASS: hero 0 weapon attack animation
+PASS: hero 0 auto attack
+PASS: hero 0 Q cooldown
+PASS: hero 0 cannot bypass cooldown
+PASS: hero 0 Q damage
+PASS: hero 0 E cooldown
+PASS: hero 0 E effect
+PASS: hero 1 stats
+PASS: hero 1 detailed model is used in battle
+PASS: hero 1 articulated walking
+PASS: hero 1 weapon attack animation
+PASS: hero 1 auto attack
+PASS: hero 1 Q cooldown
+PASS: hero 1 cannot bypass cooldown
+PASS: hero 1 Q damage
+PASS: hero 1 E cooldown
+PASS: hero 1 E effect
+PASS: hero 2 stats
+PASS: hero 2 detailed model is used in battle
+PASS: hero 2 articulated walking
+PASS: hero 2 weapon attack animation
+PASS: hero 2 auto attack
+PASS: hero 2 Q cooldown
+PASS: hero 2 cannot bypass cooldown
+PASS: hero 2 Q damage
+PASS: hero 2 E cooldown
+PASS: hero 2 E effect
+PASS: melee enemy attacks
+PASS: spitter launches projectile
+PASS: pause stops combat
+PASS: escape resumes combat
+PASS: experience opens upgrade selection
+PASS: upgrade resumes combat
+PASS: enemy 0 stats
+PASS: enemy 1 stats
+PASS: enemy 2 stats
+PASS: enemy 3 stats
+PASS: enemy 4 stats
+PASS: damage and invulnerability
+PASS: damage upgrade
+PASS: health upgrade
+PASS: boss victory
+PASS: defeat
+PASS: restart resets state
+PASS: 60 second simulation
+PASS: timed boss arrival
+PASS: deadline ends run
+PASS: three distinct live 3D previews
+PASS: drag rotates the actual 3D model
+SMOKE TEST COMPLETE
+
+PASS: ZIP CRC, Info.plist, x86_64 + arm64, signature presence, executable permission
+Note: signature presence is not Apple signature validation or notarization.
+EXPORTED RESOURCE CHECKS (Linux engine, not macOS binary)
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS: all beveled armor faces point outward
+PASS: hero 0 stats
+PASS: hero 0 detailed model is used in battle
+PASS: hero 0 articulated walking
+PASS: hero 0 weapon attack animation
+PASS: hero 0 auto attack
+PASS: hero 0 Q cooldown
+PASS: hero 0 cannot bypass cooldown
+PASS: hero 0 Q damage
+PASS: hero 0 E cooldown
+PASS: hero 0 E effect
+PASS: hero 1 stats
+PASS: hero 1 detailed model is used in battle
+PASS: hero 1 articulated walking
+PASS: hero 1 weapon attack animation
+PASS: hero 1 auto attack
+PASS: hero 1 Q cooldown
+PASS: hero 1 cannot bypass cooldown
+PASS: hero 1 Q damage
+PASS: hero 1 E cooldown
+PASS: hero 1 E effect
+PASS: hero 2 stats
+PASS: hero 2 detailed model is used in battle
+PASS: hero 2 articulated walking
+PASS: hero 2 weapon attack animation
+PASS: hero 2 auto attack
+PASS: hero 2 Q cooldown
+PASS: hero 2 cannot bypass cooldown
+PASS: hero 2 Q damage
+PASS: hero 2 E cooldown
+PASS: hero 2 E effect
+PASS: melee enemy attacks
+PASS: spitter launches projectile
+PASS: pause stops combat
+PASS: escape resumes combat
+PASS: experience opens upgrade selection
+PASS: upgrade resumes combat
+PASS: enemy 0 stats
+PASS: enemy 1 stats
+PASS: enemy 2 stats
+PASS: enemy 3 stats
+PASS: enemy 4 stats
+PASS: damage and invulnerability
+PASS: damage upgrade
+PASS: health upgrade
+PASS: boss victory
+PASS: defeat
+PASS: restart resets state
+PASS: 60 second simulation
+PASS: timed boss arrival
+PASS: deadline ends run
+PASS: three distinct live 3D previews
+PASS: drag rotates the actual 3D model
+SMOKE TEST COMPLETE
+
+ALL CHECKS PASSED

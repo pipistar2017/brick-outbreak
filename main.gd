@@ -1,5 +1,7 @@
 extends Node3D
 
+const HeroVisual = preload("res://hero_model.gd")
+
 const HEROES = [
 	{"name":"青龙战将", "role":"近战横扫 · 220 血量 · 普攻 30", "hp":220.0,"damage":30.0,"rate":0.8,"color":Color("21c78b"),"q":6.0,"e":14.0},
 	{"name":"赤焰游侠", "role":"远程速射 · 140 血量 · 普攻 18", "hp":140.0,"damage":18.0,"rate":0.35,"color":Color("ff884b"),"q":5.0,"e":16.0},
@@ -43,6 +45,8 @@ var choosing := false
 var paused := false
 var boss_spawned := false
 var direction := Vector3.FORWARD
+var portrait_rigs: Array = []
+var menu_preview := false
 var preview := false
 var preview_frames := 0
 var auto_test := false
@@ -71,9 +75,13 @@ func box(parent: Node3D, pos: Vector3, size: Vector3, color: Color) -> MeshInsta
 	return mesh
 
 func figure(color: Color, armored: bool) -> Node3D:
+	if armored:
+		var model := HeroVisual.new()
+		model.build(hero)
+		return model
 	var root := Node3D.new()
-	box(root, Vector3(0,1.0,0), Vector3(0.62,0.65,0.38),color)
-	box(root, Vector3(0,1.58,0), Vector3(0.45,0.45,0.43),Color("e8c79b") if armored else color.lightened(0.2))
+	box(root,Vector3(0,1.0,0),Vector3(0.62,0.65,0.38),color)
+	box(root,Vector3(0,1.58,0),Vector3(0.45,0.45,0.43),color.lightened(0.2))
 	for x in [-0.19,0.19]:
 		box(root,Vector3(x,0.39,0),Vector3(0.27,0.55,0.32),Color("27344b"))
 		box(root,Vector3(x,0.1,-0.06),Vector3(0.30,0.18,0.44),Color("172131"))
@@ -81,20 +89,6 @@ func figure(color: Color, armored: bool) -> Node3D:
 		box(root,Vector3(x,0.98,0),Vector3(0.23,0.65,0.28),color.darkened(0.15))
 	for x in [-0.11,0.11]:
 		box(root,Vector3(x,1.62,-0.224),Vector3(0.065,0.065,0.02),Color("10131c"))
-	if armored:
-		box(root,Vector3(0,1.84,0),Vector3(0.55,0.14,0.48),Color("edc76a"))
-		box(root,Vector3(0,2.0,0.06),Vector3(0.12,0.25,0.2),color)
-		box(root,Vector3(0,0.95,0.28),Vector3(0.68,0.95,0.08),Color("ba4051"))
-		if hero == 1:
-			box(root,Vector3(0.54,1.1,-0.4),Vector3(0.20,0.22,0.85),Color("d7b66a"))
-			box(root,Vector3(0.54,1.1,-0.85),Vector3(0.13,0.13,0.15),color)
-		else:
-			box(root,Vector3(0.58,1.1,-0.3),Vector3(0.08,0.95,0.12),Color("edc76a"))
-			box(root,Vector3(0.58,1.65,-0.3),Vector3(0.22,0.55,0.12),color.lightened(0.25))
-		if hero == 0:
-			box(root,Vector3(0,1.38,-0.24),Vector3(0.26,0.25,0.06),Color("162a27"))
-			for x in [-0.25,0.25]:
-				box(root,Vector3(x,1.68,0),Vector3(0.09,0.45,0.5),Color("edc76a"))
 	return root
 
 func _ready() -> void:
@@ -126,7 +120,7 @@ func _ready() -> void:
 		box(world,pos+Vector3(0,0.85,0),Vector3(0.5,0.5,0.5),Color("c2a261"))
 	camera = Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = 24
+	camera.size = 22
 	add_child(camera)
 	camera.position = Vector3(0,24,20)
 	camera.look_at(Vector3.ZERO)
@@ -164,6 +158,10 @@ func _ready() -> void:
 		sound.play()
 		synth = sound.get_stream_playback()
 	show_menu()
+	menu_preview = "--menu-preview" in OS.get_cmdline_user_args() or "--back-preview" in OS.get_cmdline_user_args()
+	if "--back-preview" in OS.get_cmdline_user_args():
+		for model in portrait_rigs:
+			model.rotation.y = PI
 	preview = "--preview" in OS.get_cmdline_user_args()
 	if preview:
 		start_game(0)
@@ -183,6 +181,7 @@ func label(parent: Node, text: String, pos: Vector2, size: int) -> Label:
 	return l
 
 func panel(title: String, subtitle: String) -> VBoxContainer:
+	portrait_rigs.clear()
 	if is_instance_valid(menu):
 		menu.queue_free()
 	menu = ColorRect.new()
@@ -223,15 +222,113 @@ func button(parent: Node, text: String, callback: Callable) -> void:
 
 func show_menu() -> void:
 	playing = false
-	var col := panel("积木 / 尸潮", "积木英雄，迎战尸潮。\n首领在 02:30 出现 · 在 04:00 前击败它即可获胜")
+	paused = false
+	choosing = false
+	var col := panel("积木 / 尸潮", "武将集结 · 拖动模型可旋转查看 · 选择一位英雄出战")
+	col.position = Vector2(60,28)
+	col.custom_minimum_size = Vector2(1160,0)
+	col.add_theme_constant_override("separation",12)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation",16)
+	col.add_child(row)
+	var descriptions := ["Q 青龙横扫 · 近身清场\nE 破阵突击 · 位移免伤", "Q 爆裂弹 · 范围打击\nE 火力全开 · 连续速射", "Q 冰霜新星 · 群体减速\nE 极寒爆发 · 冰霜爆发"]
 	for i in range(3):
-		var h: Dictionary = HEROES[i]
-		button(col,"%s    /    %s" % [h.name,h.role],start_game.bind(i))
+		var card := PanelContainer.new()
+		card.custom_minimum_size = Vector2(376,0)
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color("101f30")
+		style.border_color = HeroVisual.PALETTES[i].trim.darkened(0.15)
+		style.set_border_width_all(1)
+		style.set_corner_radius_all(10)
+		style.content_margin_left = 12
+		style.content_margin_right = 12
+		style.content_margin_top = 10
+		style.content_margin_bottom = 12
+		card.add_theme_stylebox_override("panel",style)
+		row.add_child(card)
+		var body := VBoxContainer.new()
+		body.add_theme_constant_override("separation",9)
+		card.add_child(body)
+		make_portrait(body,i)
+		for entry in [[HEROES[i].name,26],[HEROES[i].role,16],[descriptions[i],17]]:
+			var text := Label.new()
+			text.text = entry[0]
+			text.add_theme_font_size_override("font_size",entry[1])
+			text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			body.add_child(text)
+		button(body,"选择出战",start_game.bind(i))
+		body.get_child(body.get_child_count()-1).custom_minimum_size = Vector2(352,50)
 	var tip := Label.new()
-	tip.text = "WASD / 方向键移动    Q / E 技能    空格闪避    Esc 暂停\n自动攻击 · 击杀升级三选一 · 离线单机 · 先点击任一英雄开始"
+	tip.text = "WASD / 方向键移动    Q / E 技能    空格闪避    Esc 暂停\n首领 02:30 出现 · 在 04:00 前击败它 · 自动攻击，升级三选一"
+	tip.add_theme_font_size_override("font_size",17)
 	col.add_child(tip)
 
+func make_portrait(parent: Control, index: int) -> void:
+	var holder := SubViewportContainer.new()
+	holder.custom_minimum_size = Vector2(352,300)
+	holder.stretch = true
+	holder.mouse_default_cursor_shape = Control.CURSOR_DRAG
+	parent.add_child(holder)
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(352,300)
+	viewport.own_world_3d = true
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	viewport.msaa_3d = Viewport.MSAA_2X
+	holder.add_child(viewport)
+	var environment := WorldEnvironment.new()
+	environment.environment = Environment.new()
+	environment.environment.background_mode = Environment.BG_COLOR
+	environment.environment.background_color = Color("101f30")
+	environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.environment.ambient_light_color = Color("d3e1f2")
+	environment.environment.ambient_light_energy = 0.65
+	viewport.add_child(environment)
+	var key := DirectionalLight3D.new()
+	key.rotation_degrees = Vector3(-30,-35,0)
+	key.light_color = Color("ffebc4")
+	key.light_energy = 1.25
+	viewport.add_child(key)
+	var fill := OmniLight3D.new()
+	fill.position = Vector3(-2,3,-3)
+	fill.light_color = Color("9ecbff")
+	fill.light_energy = 0.85
+	fill.omni_range = 8
+	viewport.add_child(fill)
+	var rim := OmniLight3D.new()
+	rim.position = Vector3(1,3,2)
+	rim.light_color = HeroVisual.PALETTES[index].energy
+	rim.light_energy = 1.0
+	rim.omni_range = 7
+	viewport.add_child(rim)
+	var stage := MeshInstance3D.new()
+	var disc := CylinderMesh.new()
+	disc.top_radius = 1.15
+	disc.bottom_radius = 1.23
+	disc.height = 0.12
+	disc.radial_segments = 48
+	stage.mesh = disc
+	stage.position.y = -0.08
+	stage.material_override = HeroVisual.mat(Color("26354b"))
+	viewport.add_child(stage)
+	var model := HeroVisual.new()
+	model.build(index)
+	model.rotation.y = -0.1
+	viewport.add_child(model)
+	portrait_rigs.append(model)
+	var cam := Camera3D.new()
+	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
+	cam.size = 3.85
+	cam.position = Vector3(2.3,2.6,-5)
+	viewport.add_child(cam)
+	cam.look_at(Vector3(0,1.43,0))
+	cam.current = true
+	holder.gui_input.connect(func(event: InputEvent):
+		if event is InputEventMouseMotion and event.button_mask & MOUSE_BUTTON_MASK_LEFT:
+			model.rotation.y += event.relative.x*0.015
+	)
+
 func start_game(index: int) -> void:
+	portrait_rigs.clear()
 	if is_instance_valid(menu):
 		menu.queue_free()
 	for e in enemies:
@@ -265,6 +362,16 @@ func start_game(index: int) -> void:
 	paused = false
 	player = figure(HEROES[hero].color,true)
 	world.add_child(player)
+	var halo := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.57
+	torus.outer_radius = 0.63
+	torus.rings = 24
+	torus.ring_segments = 6
+	halo.mesh = torus
+	halo.position.y = 0.035
+	halo.material_override = HeroVisual.mat(HEROES[hero].color,false,true)
+	player.add_child(halo)
 	playing = true
 
 func spawn_enemy(kind: int) -> Dictionary:
@@ -356,6 +463,7 @@ func skill(which: int) -> void:
 			buff = 5
 		else:
 			area_damage(8,120,true)
+	player.cast()
 	tone(580)
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -410,9 +518,18 @@ func finish(won: bool) -> void:
 	button(col,"更换英雄",show_menu)
 
 func _process(delta: float) -> void:
+	for model in portrait_rigs:
+		if is_instance_valid(model):
+			model.animate(delta,false)
+	if menu_preview:
+		preview_frames += 1
+		if preview_frames==20:
+			get_viewport().get_texture().get_image().save_png("res://dist/heroes-back.png" if "--back-preview" in OS.get_cmdline_user_args() else "res://dist/heroes.png")
+			get_tree().quit()
+			return
 	if preview:
 		preview_frames += 1
-		if preview_frames == 90:
+		if preview_frames == 30:
 			get_viewport().get_texture().get_image().save_png("/workspace/brick-outbreak/dist/gameplay.png")
 			get_tree().quit()
 			return
@@ -432,6 +549,7 @@ func step(delta: float) -> void:
 	dash_clock = maxf(0,dash_clock-delta)
 	buff = maxf(0,buff-delta)
 	var movement := Vector3(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),0,float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP)))
+	player.animate(delta,movement.length()>0)
 	if movement.length()>0:
 		direction = movement.normalized()
 		player.position += direction*5.5*delta
@@ -482,6 +600,7 @@ func step(delta: float) -> void:
 			else:
 				damage_player(data.damage)
 	if not nearest.is_empty() and attack_clock<=0 and nearest_distance<(3.5 if hero==0 else 12.0):
+		player.attack()
 		attack_clock = HEROES[hero].rate*(0.6 if buff>0 else 1.0)
 		player.look_at(Vector3(nearest.node.position.x,0,nearest.node.position.z))
 		if hero==0:
@@ -535,9 +654,23 @@ func run_smoke_test() -> void:
 	if test_steps>0:
 		return
 	test_steps += 1
+	var mesh_arrays: Array = HeroVisual.beveled(Vector3.ONE).surface_get_arrays(0)
+	var outward := true
+	for i in range(0,mesh_arrays[Mesh.ARRAY_VERTEX].size(),3):
+		var center: Vector3 = (mesh_arrays[Mesh.ARRAY_VERTEX][i]+mesh_arrays[Mesh.ARRAY_VERTEX][i+1]+mesh_arrays[Mesh.ARRAY_VERTEX][i+2])/3.0
+		outward = outward and center.dot(mesh_arrays[Mesh.ARRAY_NORMAL][i])>0
+	check(outward,"all beveled armor faces point outward")
 	for index in range(3):
 		start_game(index)
 		check(hp==HEROES[index].hp,"hero %d stats" % index)
+		check(player.identity==index and player.decorative_parts>100,"hero %d detailed model is used in battle" % index)
+		player.animate(0.1,true)
+		check(absf(player.leg_l.rotation.x)>0.1,"hero %d articulated walking" % index)
+		player.animate(0.0,false)
+		var idle_arm: float = player.arm_r.rotation.x
+		player.attack()
+		player.animate(0.1,false)
+		check(absf(player.arm_r.rotation.x-idle_arm)>0.1,"hero %d weapon attack animation" % index)
 		var e := spawn_enemy(0)
 		e.node.position = Vector3(1,0,0)
 		step(0.016)
@@ -554,8 +687,11 @@ func run_smoke_test() -> void:
 		skill(0)
 		check(target.hp<previous_hp,"hero %d Q damage" % index)
 		e_clock = 0
+		var before: Vector3 = player.position
 		skill(1)
 		check(e_clock>0,"hero %d E cooldown" % index)
+		var skill_effect: bool = player.position.distance_to(before)>5 and invuln>0 if index==0 else buff==5 if index==1 else target.slow>0 and target.hp<previous_hp-100
+		check(skill_effect,"hero %d E effect" % index)
 	start_game(0)
 	var melee := spawn_enemy(0)
 	melee.node.position = Vector3(1.2,0,0)
@@ -614,5 +750,14 @@ func run_smoke_test() -> void:
 	elapsed = 239.99
 	step(0.02)
 	check(not playing,"deadline ends run")
+	show_menu()
+	check(portrait_rigs.size()==3 and portrait_rigs[0].identity==0 and portrait_rigs[2].identity==2,"three distinct live 3D previews")
+	var portrait: Node3D = portrait_rigs[0]
+	var before_rotation := portrait.rotation.y
+	var motion := InputEventMouseMotion.new()
+	motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+	motion.relative = Vector2(40,0)
+	portrait.get_parent().get_parent().gui_input.emit(motion)
+	check(portrait.rotation.y>before_rotation+0.5,"drag rotates the actual 3D model")
 	print("SMOKE TEST COMPLETE")
 	get_tree().quit(0)

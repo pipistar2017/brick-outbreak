@@ -1,14 +1,16 @@
-Brick Outbreak MVP 0.1.0
-Validation: Linux x86_64 / Godot 4.6.3
+Brick Outbreak MVP 0.2.0 — articulated brick warrior models
+Validated on Linux x86_64 / Godot 4.6.3.
 
-PASS: 38 source gameplay checks.
-PASS: Same 38 checks run against the exported macOS PCK using Linux Godot.
-PASS: ZIP CRC, application plist, executable permissions.
-PASS: Mach-O universal binary contains Intel x86_64 and Apple Silicon arm64.
-PASS: Code signature load command present in each architecture.
-PASS: OpenGL rendering captured and visually inspected; Chinese glyphs render.
+PASS: 53 source gameplay/model checks and same 53 checks against exported PCK.
+PASS: ZIP CRC, application plist, executable permissions, x86_64 + arm64 slices.
+PASS: Code signature load commands present (not Apple signature validation).
+PASS: Real OpenGL front/back hero gallery and battle screenshots inspected.
 
-NOT TESTED: Running the macOS executable on a Mac; macOS GPU performance;
-Apple code-signature verification, Gatekeeper acceptance, notarization.
-The application uses ad-hoc signing and is not Developer ID signed/notarized.
-Graphics are procedural block-style placeholders, not the detailed reference model.
+New checks: detailed models used in battle, articulated walk/attack, actual E
+skill effects, three live 3D previews, mouse drag rotates the actual model.
+See VALIDATION.txt for the complete automated test output.
+
+Not tested: macOS executable on a Mac, performance on Mac, Apple signature
+validation, Gatekeeper acceptance or notarization. Ad-hoc signed test build.
+Original procedural models inspired by the reference; no detailed ornamental
+sculpting, transparent plastic shader or horse model.

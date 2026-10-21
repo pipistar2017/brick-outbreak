@@ -7,3 +7,6 @@ dist/*
 !dist/SHA256SUMS.txt
 !dist/TEST-REPORT.txt
 !dist/gameplay.png
+!dist/heroes.png
+!dist/heroes-back.png
+!dist/VALIDATION.txt
