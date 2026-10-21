@@ -1,0 +1,9 @@
+.godot/
+.DS_Store
+__pycache__/
+dist/*
+!dist/Brick-Outbreak-macOS.zip
+!dist/Brick-Outbreak-Source.zip
+!dist/SHA256SUMS.txt
+!dist/TEST-REPORT.txt
+!dist/gameplay.png
