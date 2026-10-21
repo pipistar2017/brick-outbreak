@@ -10,17 +10,17 @@ package = dist / 'Brick-Outbreak-macOS.zip'
 validation = (dist / 'VALIDATION.txt').read_text()
 assert validation.rstrip().endswith('ALL CHECKS PASSED'), 'Run verification before packaging.'
 assert validation.count('SMOKE TEST COMPLETE') == 2, 'Source and exported resources must both pass.'
-(dist / 'TEST-REPORT.txt').write_text("""Brick Outbreak MVP 0.3.0 — readable combat animation and effects
+(dist / 'TEST-REPORT.txt').write_text("""Brick Outbreak MVP 0.4.0 — articulated zombie appearances and bestiary
 Validated on Linux x86_64 / Godot 4.6.3.
 
-PASS: 83 source gameplay/model checks and same 83 checks against exported PCK.
+PASS: 110 source gameplay/model checks and same 110 checks against exported PCK.
 PASS: ZIP CRC, application plist, executable permissions, x86_64 + arm64 slices.
 PASS: Code signature load commands present (not Apple signature validation).
-PASS: Real OpenGL combat screenshots and recorded basic/Q/E demonstrations inspected.
+PASS: Real OpenGL zombie front/back gallery and updated battle demonstrations inspected.
 
-New checks: melee windup timing, projectile launch/arrival damage, accurate
-damage numbers, hit flash/restoration, skill-specific effects, cooldown guard,
-pause synchronization, restart cleanup and bounded effect lifetime/population.
+New checks: five real zombie rigs, limp/open-jaw attack animation, nested hit
+flash/freeze restoration, health bar position, mesh merging and shared geometry,
+slowed gait, mouth-launched acid collision, and five-model draggable bestiary.
 See VALIDATION.txt for the complete automated test output.
 
 Not tested: macOS executable on a Mac, performance on Mac, Apple signature
@@ -52,7 +52,7 @@ with zipfile.ZipFile(dist / 'Brick-Outbreak-Source.zip', 'w', compression=zipfil
         rel = path.relative_to(root)
         if path.is_file() and not any(part in {'.git', '.godot', 'dist', '__pycache__'} for part in rel.parts):
             z.write(path, str(Path('Brick-Outbreak-Source') / rel))
-    for name in ['heroes.png', 'heroes-back.png', 'gameplay.png', 'combat-0.png', 'combat-1.png', 'combat-2.png']:
+    for name in ['heroes.png', 'heroes-back.png', 'gameplay.png', 'combat-0.png', 'combat-1.png', 'combat-2.png', 'zombies.png', 'zombies-back.png']:
         z.write(dist / name, str(Path('Brick-Outbreak-Source/dist') / name))
 checksums = []
 for name in ['Brick-Outbreak-macOS.zip', 'Brick-Outbreak-Source.zip']:

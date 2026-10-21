@@ -2,6 +2,7 @@ extends Node3D
 
 const HeroVisual = preload("res://hero_model.gd")
 const CombatFX = preload("res://combat_fx.gd")
+const ZombieVisual = preload("res://zombie_model.gd")
 
 const HEROES = [
 	{"name":"青龙战将", "role":"近战横扫 · 220 血量 · 普攻 30", "hp":220.0,"damage":30.0,"rate":0.8,"color":Color("21c78b"),"q":6.0,"e":14.0},
@@ -9,11 +10,11 @@ const HEROES = [
 	{"name":"寒霜术士", "role":"冰霜控制 · 160 血量 · 普攻 24", "hp":160.0,"damage":24.0,"rate":0.7,"color":Color("64c9ff"),"q":7.0,"e":16.0}
 ]
 const ENEMIES = [
-	{"hp":60.0,"damage":10.0,"speed":1.35,"color":Color("7caa66"),"scale":1.0},
-	{"hp":40.0,"damage":8.0,"speed":2.8,"color":Color("b4ce53"),"scale":0.8},
-	{"hp":240.0,"damage":25.0,"speed":0.8,"color":Color("977892"),"scale":1.45},
-	{"hp":80.0,"damage":15.0,"speed":1.0,"color":Color("dfaa54"),"scale":1.0},
-	{"hp":1800.0,"damage":30.0,"speed":1.15,"color":Color("e55772"),"scale":2.5}
+	{"hp":60.0,"damage":10.0,"speed":1.35,"color":Color("85997a"),"scale":1.0},
+	{"hp":40.0,"damage":8.0,"speed":2.8,"color":Color("a0ab78"),"scale":0.8},
+	{"hp":240.0,"damage":25.0,"speed":0.8,"color":Color("928a96"),"scale":1.45},
+	{"hp":80.0,"damage":15.0,"speed":1.0,"color":Color("a2aa62"),"scale":1.0},
+	{"hp":1800.0,"damage":30.0,"speed":1.15,"color":Color("687c65"),"scale":2.5}
 ]
 var fx: Node3D
 var shots: Array = []
@@ -59,6 +60,7 @@ var paused := false
 var boss_spawned := false
 var direction := Vector3.FORWARD
 var portrait_rigs: Array = []
+var zombie_preview := false
 var menu_preview := false
 var preview := false
 var preview_frames := 0
@@ -87,22 +89,6 @@ func box(parent: Node3D, pos: Vector3, size: Vector3, color: Color) -> MeshInsta
 	parent.add_child(mesh)
 	return mesh
 
-func figure(color: Color, armored: bool) -> Node3D:
-	if armored:
-		var model := HeroVisual.new()
-		model.build(hero)
-		return model
-	var root := Node3D.new()
-	box(root,Vector3(0,1.0,0),Vector3(0.62,0.65,0.38),color)
-	box(root,Vector3(0,1.58,0),Vector3(0.45,0.45,0.43),color.lightened(0.2))
-	for x in [-0.19,0.19]:
-		box(root,Vector3(x,0.39,0),Vector3(0.27,0.55,0.32),Color("27344b"))
-		box(root,Vector3(x,0.1,-0.06),Vector3(0.30,0.18,0.44),Color("172131"))
-	for x in [-0.46,0.46]:
-		box(root,Vector3(x,0.98,0),Vector3(0.23,0.65,0.28),color.darkened(0.15))
-	for x in [-0.11,0.11]:
-		box(root,Vector3(x,1.62,-0.224),Vector3(0.065,0.065,0.02),Color("10131c"))
-	return root
 
 func _ready() -> void:
 	auto_test = "--smoke-test" in OS.get_cmdline_user_args()
@@ -220,6 +206,12 @@ func _ready() -> void:
 		target.cooldown = 100
 		perform_attack(target)
 		skill(0)
+	zombie_preview = "--zombie-preview" in OS.get_cmdline_user_args() or "--zombie-back-preview" in OS.get_cmdline_user_args()
+	if zombie_preview:
+		show_zombie_gallery()
+		if "--zombie-back-preview" in OS.get_cmdline_user_args():
+			for model in portrait_rigs:
+				model.rotation.y = PI
 	combat_demo = "--combat-demo" in OS.get_cmdline_user_args()
 	if auto_test:
 		start_game(0)
@@ -315,15 +307,62 @@ func show_menu() -> void:
 	tip.text = "WASD / 方向键移动    Q / E 技能    空格闪避    Esc 暂停\n首领 02:30 出现 · 在 04:00 前击败它 · 自动攻击，升级三选一"
 	tip.add_theme_font_size_override("font_size",17)
 	col.add_child(tip)
+	var catalog := Button.new()
+	catalog.text = "丧尸图鉴"
+	catalog.position = Vector2(1000,50)
+	catalog.size = Vector2(210,46)
+	catalog.add_theme_font_size_override("font_size",20)
+	catalog.pressed.connect(show_zombie_gallery)
+	menu.add_child(catalog)
 
-func make_portrait(parent: Control, index: int) -> void:
+func show_zombie_gallery() -> void:
+	playing = false
+	paused = false
+	choosing = false
+	var col := panel("丧尸图鉴", "拖动模型可旋转查看 · 五类敌人的外形与能力")
+	col.position = Vector2(60,28)
+	col.custom_minimum_size = Vector2(1160,0)
+	col.add_theme_constant_override("separation",12)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation",15)
+	col.add_child(row)
+	var names := ["蹒跚丧尸","狂奔丧尸","重甲丧尸","疫毒喷吐者","异变首领"]
+	var descriptions := ["黑眼窝 · 缺齿垂颌\n残破衣物 · 伸手蹒跚", "低伏前倾 · 骨爪长臂\n破损兜帽 · 快速追击", "锈蚀护甲 · 肿大身躯\n破盔露面 · 重拳压制", "肿胀腹部 · 背部毒囊\n酸蚀巨口 · 喷射毒液", "畸变巨臂 · 骨刺脊背\n断齿利爪 · 巨型压迫"]
+	for i in range(5):
+		var card := PanelContainer.new()
+		card.custom_minimum_size = Vector2(220,0)
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color("111f28")
+		style.border_color = ZombieVisual.PALETTES[i].eye.darkened(0.3)
+		style.set_border_width_all(1)
+		style.set_corner_radius_all(8)
+		style.content_margin_left = 12
+		style.content_margin_right = 12
+		style.content_margin_top = 10
+		style.content_margin_bottom = 12
+		card.add_theme_stylebox_override("panel",style)
+		row.add_child(card)
+		var body := VBoxContainer.new()
+		body.add_theme_constant_override("separation",9)
+		card.add_child(body)
+		make_portrait(body,i,true)
+		var stats := "血量 %d / 伤害 %d\n体型 ×%.1f" % [ENEMIES[i].hp,ENEMIES[i].damage,ENEMIES[i].scale]
+		for entry in [[names[i],22],[stats,16],[descriptions[i],14]]:
+			var text := Label.new()
+			text.text = entry[0]
+			text.add_theme_font_size_override("font_size",entry[1])
+			text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			body.add_child(text)
+	button(col,"返回英雄选择",show_menu)
+
+func make_portrait(parent: Control, index: int, is_zombie := false) -> void:
 	var holder := SubViewportContainer.new()
-	holder.custom_minimum_size = Vector2(352,300)
+	holder.custom_minimum_size = Vector2(196,285) if is_zombie else Vector2(352,300)
 	holder.stretch = true
 	holder.mouse_default_cursor_shape = Control.CURSOR_DRAG
 	parent.add_child(holder)
 	var viewport := SubViewport.new()
-	viewport.size = Vector2i(352,300)
+	viewport.size = Vector2i(holder.custom_minimum_size)
 	viewport.own_world_3d = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	viewport.msaa_3d = Viewport.MSAA_2X
@@ -349,7 +388,7 @@ func make_portrait(parent: Control, index: int) -> void:
 	viewport.add_child(fill)
 	var rim := OmniLight3D.new()
 	rim.position = Vector3(1,3,2)
-	rim.light_color = HeroVisual.PALETTES[index].energy
+	rim.light_color = ZombieVisual.PALETTES[index].eye if is_zombie else HeroVisual.PALETTES[index].energy
 	rim.light_energy = 1.0
 	rim.omni_range = 7
 	viewport.add_child(rim)
@@ -363,14 +402,14 @@ func make_portrait(parent: Control, index: int) -> void:
 	stage.position.y = -0.08
 	stage.material_override = HeroVisual.mat(Color("26354b"))
 	viewport.add_child(stage)
-	var model := HeroVisual.new()
+	var model: Node3D = ZombieVisual.new() if is_zombie else HeroVisual.new()
 	model.build(index)
 	model.rotation.y = -0.1
 	viewport.add_child(model)
 	portrait_rigs.append(model)
 	var cam := Camera3D.new()
 	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
-	cam.size = 3.85
+	cam.size = 3.4 if is_zombie else 3.85
 	cam.position = Vector3(2.3,2.6,-5)
 	viewport.add_child(cam)
 	cam.look_at(Vector3(0,1.43,0))
@@ -417,7 +456,8 @@ func start_game(index: int) -> void:
 	boss_spawned = false
 	choosing = false
 	paused = false
-	player = figure(HEROES[hero].color,true)
+	player = HeroVisual.new()
+	player.build(hero)
 	world.add_child(player)
 	var halo := MeshInstance3D.new()
 	var torus := TorusMesh.new()
@@ -433,14 +473,17 @@ func start_game(index: int) -> void:
 
 func spawn_enemy(kind: int) -> Dictionary:
 	var data: Dictionary = ENEMIES[kind]
-	var node := figure(data.color,false)
+	var node := ZombieVisual.new()
+	node.build(kind,randi_range(0,2))
+	node.phase = randf()*TAU
+	node.animate(0,false)
 	node.scale = Vector3.ONE*data.scale
 	var angle := randf()*TAU
 	node.position = player.position+Vector3(cos(angle),0,sin(angle))*17
 	node.position.x = clampf(node.position.x,-21,21)
 	node.position.z = clampf(node.position.z,-21,21)
 	world.add_child(node)
-	var health_bar := box(node,Vector3(0,2.2,0),Vector3(0.8,0.07,0.08),Color("e36b7e"))
+	var health_bar := box(node,Vector3(0,node.health_height,0),Vector3(0.8,0.07,0.08),Color("e36b7e"))
 	var e := {"node":node,"bar":health_bar,"kind":kind,"hp":data.hp,"cooldown":1.0,"slow":0.0,"flash":0.0}
 	enemies.append(e)
 	return e
@@ -458,9 +501,7 @@ func ring(pos: Vector3, radius: float, color: Color) -> void:
 
 func flash_enemy(e: Dictionary) -> void:
 	e.flash = 0.12
-	for child in e.node.get_children():
-		if child is MeshInstance3D:
-			child.material_overlay = white_flash
+	e.node.set_overlay(white_flash)
 
 func hurt(e: Dictionary, amount: float, heavy := false, frost := false) -> void:
 	if e.get("dead",false):
@@ -681,7 +722,13 @@ func _process(delta: float) -> void:
 			return
 	for model in portrait_rigs:
 		if is_instance_valid(model):
-			model.animate(delta,false)
+			model.animate(delta,model is ZombieVisual)
+	if zombie_preview:
+		preview_frames += 1
+		if preview_frames==20:
+			get_viewport().get_texture().get_image().save_png("res://dist/zombies-back.png" if "--zombie-back-preview" in OS.get_cmdline_user_args() else "res://dist/zombies.png")
+			get_tree().quit()
+			return
 	if menu_preview:
 		preview_frames += 1
 		if preview_frames==20:
@@ -742,12 +789,11 @@ func step(delta: float) -> void:
 			nearest_distance = distance
 		e.flash = maxf(0,e.flash-delta)
 		node.scale = Vector3.ONE*data.scale*(1.0+e.flash*0.5)
-		for child in node.get_children():
-			if child is MeshInstance3D:
-				child.material_overlay = white_flash if e.flash>0 else ice_overlay if e.slow>0 else null
+		node.set_overlay(white_flash if e.flash>0 else ice_overlay if e.slow>0 else null)
 		e.cooldown -= delta
 		e.slow = maxf(0,e.slow-delta)
 		var stop_distance := 8.0 if e.kind==3 else 1.0
+		node.animate(delta,distance>stop_distance,e.slow>0)
 		if distance>stop_distance:
 			node.position += offset.normalized()*data.speed*delta*(0.5 if e.slow>0 else 1.0)
 			for other in enemies:
@@ -760,9 +806,20 @@ func step(delta: float) -> void:
 			node.rotation.y = atan2(-offset.x,-offset.z)
 		if distance < (12.0 if e.kind==3 else 1.5*data.scale) and e.cooldown<=0:
 			e.cooldown = 2.5 if e.kind==3 else 1.5
+			node.attack()
 			if e.kind==3:
-				var b := box(world,node.position+Vector3(0,1,0),Vector3(0.3,0.3,0.3),Color("eacb53"))
-				bullets.append({"node":b,"velocity":offset.normalized()*6,"time":3.0,"damage":data.damage})
+				var origin: Vector3 = node.mouth_position()
+				var aim := (player.position+Vector3(0,1.15,0)-origin).normalized()
+				var b := MeshInstance3D.new()
+				var glob := SphereMesh.new()
+				glob.radius = 0.20
+				glob.height = 0.40
+				b.mesh = glob
+				b.material_override = HeroVisual.mat(Color("c5ed6a"),false,true)
+				b.position = origin
+				world.add_child(b)
+				fx.muzzle(origin,aim,Color("bce969"))
+				bullets.append({"node":b,"velocity":aim*6,"time":3.0,"damage":data.damage})
 			else:
 				damage_player(data.damage)
 	if not nearest.is_empty() and attack_clock<=0 and nearest_distance<(3.5 if hero==0 else 12.0):
@@ -819,6 +876,64 @@ func check(condition: bool, description: String) -> void:
 		assert(condition,description)
 	print("PASS: "+description)
 
+func zombie_checks() -> void:
+	start_game(0)
+	var budget := true
+	var first: Node3D
+	for kind in range(5):
+		var e := spawn_enemy(kind)
+		var model: Node3D = e.node
+		if kind==0:
+			first = model
+		check(model.identity==kind and model.details>40 and is_instance_valid(model.head),"enemy %d uses its articulated zombie appearance" % kind)
+		budget = budget and model.meshes.size()<=36 and model.meshes.size()<model.details
+		model.phase = 0
+		model.animate(0,false)
+		var before: float = model.leg_l.rotation.x
+		model.animate(0.1,true)
+		var walked: bool = absf(model.leg_l.rotation.x-before)>0.01
+		model.attack()
+		model.animate(0.12,true)
+		check(walked and model.jaw.rotation.x>0.4,"enemy %d limp and open-jaw attack animate" % kind)
+		var restored := true
+		for overlay in [white_flash,ice_overlay,null]:
+			model.set_overlay(overlay)
+			for part in model.meshes:
+				restored = restored and part.material_overlay==overlay
+		check(restored,"enemy %d nested meshes retain flash and freeze feedback" % kind)
+		check(e.bar.global_position.y>model.head.global_position.y+0.1,"enemy %d health bar remains above the head" % kind)
+	check(budget,"zombie details are merged into a bounded mesh budget")
+	var copy := ZombieVisual.new()
+	copy.build(0,first.variant)
+	check(copy.meshes[0].mesh==first.meshes[0].mesh,"horde instances share baked geometry")
+	copy.free()
+	var before_phase: float = first.phase
+	first.animate(0.1,true,true)
+	check(is_equal_approx(first.phase-before_phase,0.21),"frozen zombie gait matches half movement speed")
+	start_game(0)
+	spawn_clock = 100
+	attack_clock = 100
+	var spitter := spawn_enemy(3)
+	spitter.node.position = Vector3(0,0,-6)
+	spitter.cooldown = 0
+	step(0.01)
+	check(bullets.size()==1 and bullets[0].node.position.distance_to(spitter.node.mouth_position())<0.1,"acid projectile visibly launches from the zombie mouth")
+	for i in range(30):
+		step(0.05)
+	check(hp==205 and bullets.is_empty(),"mouth-launched acid reaches and damages the player once")
+	show_zombie_gallery()
+	var correct: bool = portrait_rigs.size()==5
+	for i in range(portrait_rigs.size()):
+		correct = correct and portrait_rigs[i] is ZombieVisual and portrait_rigs[i].identity==i
+	check(correct,"zombie bestiary previews all five actual enemy models")
+	var model: Node3D = portrait_rigs[0]
+	var yaw := model.rotation.y
+	var motion := InputEventMouseMotion.new()
+	motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+	motion.relative = Vector2(40,0)
+	model.get_parent().get_parent().gui_input.emit(motion)
+	check(model.rotation.y>yaw+0.5,"zombie bestiary drag rotates the 3D model")
+
 func combat_checks() -> void:
 	start_game(0)
 	attack_clock = 100
@@ -869,9 +984,9 @@ func combat_checks() -> void:
 	target.node.position = Vector3(2,0,0)
 	target.cooldown = 100
 	hurt(target,10)
-	check(target.node.get_child(0).material_overlay==white_flash,"actual hit visibly flashes enemy")
+	check(target.node.meshes[0].material_overlay==white_flash,"actual hit visibly flashes enemy")
 	step(0.2)
-	check(target.node.get_child(0).material_overlay==null,"hit flash restores original material")
+	check(target.node.meshes[0].material_overlay==null,"hit flash restores original material")
 	for index in range(3):
 		start_game(index)
 		var count: int = fx.created
@@ -1012,5 +1127,6 @@ func run_smoke_test() -> void:
 	portrait.get_parent().get_parent().gui_input.emit(motion)
 	check(portrait.rotation.y>before_rotation+0.5,"drag rotates the actual 3D model")
 	combat_checks()
+	zombie_checks()
 	print("SMOKE TEST COMPLETE")
 	get_tree().quit(0)

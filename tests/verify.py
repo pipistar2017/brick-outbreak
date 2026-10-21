@@ -20,7 +20,7 @@ def run(args):
     assert not re.search(r'(?:SCRIPT ERROR|ERROR:|FAIL:)', result.stdout), 'Engine errors'
     assert 'SMOKE TEST COMPLETE' in result.stdout, 'Suite did not complete'
     count = result.stdout.count('PASS:')
-    assert count == 83, f'Expected 83 checks, got {count}'
+    assert count == 110, f'Expected 110 checks, got {count}'
     return count
 
 print('SOURCE CHECKS')
@@ -31,7 +31,7 @@ if len(sys.argv) > 1:
         names = z.namelist()
         plist_name = next(n for n in names if n.endswith('.app/Contents/Info.plist'))
         info = plistlib.loads(z.read(plist_name))
-        assert info['CFBundleShortVersionString'] == '0.3.0', 'Wrong app version'
+        assert info['CFBundleShortVersionString'] == '0.4.0', 'Wrong app version'
         binary_name = plist_name.removesuffix('Info.plist') + 'MacOS/' + info['CFBundleExecutable']
         blob = z.read(binary_name)
         magic, count = struct.unpack_from('>II', blob)

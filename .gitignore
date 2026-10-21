@@ -12,3 +12,5 @@ dist/*
 !dist/VALIDATION.txt
 !dist/combat-*.png
 !dist/combat-demo.mp4
+!dist/zombies.png
+!dist/zombies-back.png

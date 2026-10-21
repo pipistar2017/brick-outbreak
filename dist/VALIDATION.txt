@@ -84,6 +84,33 @@ PASS: pause freezes effects and projectile flight
 PASS: restart removes old projectiles and effects
 PASS: effect population remains bounded
 PASS: expired FX are released
+PASS: enemy 0 uses its articulated zombie appearance
+PASS: enemy 0 limp and open-jaw attack animate
+PASS: enemy 0 nested meshes retain flash and freeze feedback
+PASS: enemy 0 health bar remains above the head
+PASS: enemy 1 uses its articulated zombie appearance
+PASS: enemy 1 limp and open-jaw attack animate
+PASS: enemy 1 nested meshes retain flash and freeze feedback
+PASS: enemy 1 health bar remains above the head
+PASS: enemy 2 uses its articulated zombie appearance
+PASS: enemy 2 limp and open-jaw attack animate
+PASS: enemy 2 nested meshes retain flash and freeze feedback
+PASS: enemy 2 health bar remains above the head
+PASS: enemy 3 uses its articulated zombie appearance
+PASS: enemy 3 limp and open-jaw attack animate
+PASS: enemy 3 nested meshes retain flash and freeze feedback
+PASS: enemy 3 health bar remains above the head
+PASS: enemy 4 uses its articulated zombie appearance
+PASS: enemy 4 limp and open-jaw attack animate
+PASS: enemy 4 nested meshes retain flash and freeze feedback
+PASS: enemy 4 health bar remains above the head
+PASS: zombie details are merged into a bounded mesh budget
+PASS: horde instances share baked geometry
+PASS: frozen zombie gait matches half movement speed
+PASS: acid projectile visibly launches from the zombie mouth
+PASS: mouth-launched acid reaches and damages the player once
+PASS: zombie bestiary previews all five actual enemy models
+PASS: zombie bestiary drag rotates the 3D model
 SMOKE TEST COMPLETE
 
 PASS: ZIP CRC, Info.plist, x86_64 + arm64, signature presence, executable permission
@@ -174,6 +201,33 @@ PASS: pause freezes effects and projectile flight
 PASS: restart removes old projectiles and effects
 PASS: effect population remains bounded
 PASS: expired FX are released
+PASS: enemy 0 uses its articulated zombie appearance
+PASS: enemy 0 limp and open-jaw attack animate
+PASS: enemy 0 nested meshes retain flash and freeze feedback
+PASS: enemy 0 health bar remains above the head
+PASS: enemy 1 uses its articulated zombie appearance
+PASS: enemy 1 limp and open-jaw attack animate
+PASS: enemy 1 nested meshes retain flash and freeze feedback
+PASS: enemy 1 health bar remains above the head
+PASS: enemy 2 uses its articulated zombie appearance
+PASS: enemy 2 limp and open-jaw attack animate
+PASS: enemy 2 nested meshes retain flash and freeze feedback
+PASS: enemy 2 health bar remains above the head
+PASS: enemy 3 uses its articulated zombie appearance
+PASS: enemy 3 limp and open-jaw attack animate
+PASS: enemy 3 nested meshes retain flash and freeze feedback
+PASS: enemy 3 health bar remains above the head
+PASS: enemy 4 uses its articulated zombie appearance
+PASS: enemy 4 limp and open-jaw attack animate
+PASS: enemy 4 nested meshes retain flash and freeze feedback
+PASS: enemy 4 health bar remains above the head
+PASS: zombie details are merged into a bounded mesh budget
+PASS: horde instances share baked geometry
+PASS: frozen zombie gait matches half movement speed
+PASS: acid projectile visibly launches from the zombie mouth
+PASS: mouth-launched acid reaches and damages the player once
+PASS: zombie bestiary previews all five actual enemy models
+PASS: zombie bestiary drag rotates the 3D model
 SMOKE TEST COMPLETE
 
 ALL CHECKS PASSED
