@@ -19,6 +19,8 @@ var cape: Node3D
 var weapon: Node3D
 var walk_phase := 0.0
 var attack_time := 0.0
+var attack_duration := 0.42
+var cast_variant := 0
 var skill_time := 0.0
 var p: Dictionary
 var decorative_parts := 0
@@ -322,20 +324,58 @@ func animate(delta: float, walking: bool, enabled := true) -> void:
 	leg_r.rotation.x = -stride
 	arm_l.rotation.x = -stride*0.65-0.08
 	arm_r.rotation.x = stride*0.45-0.13
-	rig.position.y = absf(sin(walk_phase))*0.045 if walking else sin(walk_phase)*0.012
+	arm_r.rotation.z = 0
+	rig.rotation = Vector3.ZERO
+	rig.position = Vector3(0,absf(sin(walk_phase))*0.045 if walking else sin(walk_phase)*0.012,0)
 	cape.rotation.x = -0.08-sin(walk_phase*0.7)*0.055-(0.15 if walking else 0.0)
 	cape.rotation.z = sin(walk_phase*0.55)*0.035
 	if attack_time>0:
-		var swing := sin((1.0-attack_time/0.32)*PI)
-		arm_r.rotation.x += swing*0.22 if identity==1 else -swing*0.9
-		arm_r.rotation.z = -swing*0.65 if identity==0 else 0.0
-	else:
-		arm_r.rotation.z = lerpf(arm_r.rotation.z,0.0,minf(1,delta*12))
+		var t := 1-attack_time/attack_duration
+		var recovery := 1-smoothstep(0.55,1.0,t)
+		if identity==0:
+			var cut := smoothstep(0.12,0.48,t)
+			arm_r.rotation.z = lerpf(0.65,-1.35,cut)*recovery
+			arm_r.rotation.x = -0.55-sin(cut*PI)*0.9*recovery
+			arm_l.rotation.x = -0.45*recovery
+			rig.rotation.y = lerpf(-0.42,0.58,cut)*recovery
+		elif identity==1:
+			var recoil := sin(t*PI)
+			arm_r.rotation.x += recoil*0.56
+			arm_l.rotation.x = -0.7*recoil
+			rig.position.z = recoil*0.10
+		else:
+			arm_r.rotation.x -= sin(t*PI)*1.5
+			arm_l.rotation.x -= sin(t*PI)*0.65
+			rig.rotation.y = sin(t*PI)*0.23
 	if skill_time>0:
-		arm_l.rotation.x -= sin(skill_time*PI)*0.8
+		var t := 1-skill_time/0.85
+		var lift := sin(clampf(t,0,1)*PI)
+		arm_l.rotation.x = -lift*1.2
+		arm_r.rotation.x = -lift*1.8
+		if identity==0:
+			if cast_variant==0:
+				rig.rotation.y = smoothstep(0.06,0.82,t)*TAU
+				arm_r.rotation.z = -1.1*lift
+			else:
+				rig.rotation.x = -0.32*lift
+				arm_r.rotation.x = -1.4*lift
+		elif identity==1:
+			arm_r.rotation.x = -0.3 if cast_variant==1 else -1.45*lift
+			arm_l.rotation.z = -0.6*lift
+		else:
+			arm_l.rotation.z = 0.7*lift
+			rig.position.y += 0.14*lift
+	else:
+		arm_l.rotation.z = 0
 
 func attack() -> void:
-	attack_time = 0.32
+	attack_duration = 0.42 if identity==0 else 0.25 if identity==1 else 0.5
+	attack_time = attack_duration
 
-func cast() -> void:
-	skill_time = 0.8
+func cast(which := 0) -> void:
+	cast_variant = which
+	skill_time = 0.85
+
+func emission_point() -> Vector3:
+	# Attach the projectile to the actual held weapon, not the character's feet.
+	return weapon.to_global(Vector3(0,0.0,-0.94) if identity==1 else Vector3(0,1.4,0))

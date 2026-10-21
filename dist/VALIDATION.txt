@@ -54,6 +54,36 @@ PASS: timed boss arrival
 PASS: deadline ends run
 PASS: three distinct live 3D previews
 PASS: drag rotates the actual 3D model
+PASS: melee begins with a visible windup
+PASS: melee windup does not deal premature damage
+PASS: melee damage settles once at the slash
+PASS: hero 1 projectile leaves weapon before damage
+PASS: hero 1 projectile begins at held weapon
+PASS: hero 1 no premature projectile damage
+PASS: hero 1 damage settles once on arrival
+PASS: hero 1 damage popup matches actual hit
+PASS: hero 2 projectile leaves weapon before damage
+PASS: hero 2 projectile begins at held weapon
+PASS: hero 2 no premature projectile damage
+PASS: hero 2 damage settles once on arrival
+PASS: hero 2 damage popup matches actual hit
+PASS: ice projectile applies slow on impact
+PASS: in-flight bolt cannot reward a dead target twice
+PASS: actual hit visibly flashes enemy
+PASS: hit flash restores original material
+PASS: hero 0 Q has visible FX and skill title
+PASS: hero 0 cooldown cannot duplicate attack FX
+PASS: hero 0 E has visible FX and skill title
+PASS: hero 1 Q has visible FX and skill title
+PASS: hero 1 cooldown cannot duplicate attack FX
+PASS: hero 1 E has visible FX and skill title
+PASS: hero 2 Q has visible FX and skill title
+PASS: hero 2 cooldown cannot duplicate attack FX
+PASS: hero 2 E has visible FX and skill title
+PASS: pause freezes effects and projectile flight
+PASS: restart removes old projectiles and effects
+PASS: effect population remains bounded
+PASS: expired FX are released
 SMOKE TEST COMPLETE
 
 PASS: ZIP CRC, Info.plist, x86_64 + arm64, signature presence, executable permission
@@ -114,6 +144,36 @@ PASS: timed boss arrival
 PASS: deadline ends run
 PASS: three distinct live 3D previews
 PASS: drag rotates the actual 3D model
+PASS: melee begins with a visible windup
+PASS: melee windup does not deal premature damage
+PASS: melee damage settles once at the slash
+PASS: hero 1 projectile leaves weapon before damage
+PASS: hero 1 projectile begins at held weapon
+PASS: hero 1 no premature projectile damage
+PASS: hero 1 damage settles once on arrival
+PASS: hero 1 damage popup matches actual hit
+PASS: hero 2 projectile leaves weapon before damage
+PASS: hero 2 projectile begins at held weapon
+PASS: hero 2 no premature projectile damage
+PASS: hero 2 damage settles once on arrival
+PASS: hero 2 damage popup matches actual hit
+PASS: ice projectile applies slow on impact
+PASS: in-flight bolt cannot reward a dead target twice
+PASS: actual hit visibly flashes enemy
+PASS: hit flash restores original material
+PASS: hero 0 Q has visible FX and skill title
+PASS: hero 0 cooldown cannot duplicate attack FX
+PASS: hero 0 E has visible FX and skill title
+PASS: hero 1 Q has visible FX and skill title
+PASS: hero 1 cooldown cannot duplicate attack FX
+PASS: hero 1 E has visible FX and skill title
+PASS: hero 2 Q has visible FX and skill title
+PASS: hero 2 cooldown cannot duplicate attack FX
+PASS: hero 2 E has visible FX and skill title
+PASS: pause freezes effects and projectile flight
+PASS: restart removes old projectiles and effects
+PASS: effect population remains bounded
+PASS: expired FX are released
 SMOKE TEST COMPLETE
 
 ALL CHECKS PASSED

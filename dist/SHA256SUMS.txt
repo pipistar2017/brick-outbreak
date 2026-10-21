@@ -1,2 +1,2 @@
-811d0504484a7b7792ce410d388a8b081f5bad6ba58d7138ecd01566b9526a82  Brick-Outbreak-macOS.zip
-36473c9795a549857a552429f244e0437886dddd261456669a971626e0dbede1  Brick-Outbreak-Source.zip
+f8e59534198408ed118b7ee3f16b8a18b7e2f95462d76742d6ff2e65dac49b1d  Brick-Outbreak-macOS.zip
+714e4a9c745d472be1dfde1ab10ebd7b77f881627b368e25b023cc151fcdb0ec  Brick-Outbreak-Source.zip

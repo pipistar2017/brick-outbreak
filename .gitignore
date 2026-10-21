@@ -10,3 +10,5 @@ dist/*
 !dist/heroes.png
 !dist/heroes-back.png
 !dist/VALIDATION.txt
+!dist/combat-*.png
+!dist/combat-demo.mp4
