@@ -1,12 +1,16 @@
-Brick Outbreak MVP 0.6.0 — three-stage expedition campaign
+Brick Outbreak MVP 0.7.0 — hero growth, third skills and difficulty
 Validated on Linux x86_64 / Godot 4.6.3.
 
-PASS: 277 source gameplay/model checks and the same 277 checks against exported PCK.
+PASS: 398 source gameplay/model checks and the same 398 checks against exported PCK.
 PASS: ZIP CRC, application plist, executable permissions, x86_64 + arm64 slices.
 PASS: Code signature load commands present (not Apple signature validation).
-PASS: Actual OpenGL savanna/pyramid/Great Wall scenes and recorded demonstration inspected.
-PASS: Graphical campaign walkthrough used upgrade button signals and reached 84-kill victory.
+PASS: Actual OpenGL new-skill screenshots, menu/difficulty selection and demonstration inspected.
+PASS: The complete campaign remains covered by the exported-resource checks.
 
+New checks cover per-stage hero health and retained armour, all three difficulty
+settings and actual movement/attack changes, Q/E adjustments, third-skill directional
+coverage, landing time, damage totals, upgrade scaling, cooldowns, pause and cleanup,
+plus F-key and button input.
 Campaign checks cover all nine finite waves and 84 required enemies, ordered
 stage progression, final-wave bosses, remaining-enemy clearance, intermission
 upgrades, retained progress, healing/cooldown reset, cleanup and final victory.

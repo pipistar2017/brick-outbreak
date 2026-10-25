@@ -229,10 +229,13 @@ func update(delta: float) -> void:
 		e.age += delta
 		var t := clampf(e.age/e.life,0,1)
 		var node: Node3D = e.node
-		if e.mode=="bolt":
+		if e.mode in ["bolt","meteor"]:
 			node.position = e.start.lerp(e.end,clampf(e.age/e.travel,0,1))
-			if node.position.distance_to(e.end)>0.01:
+			if e.mode=="bolt" and node.position.distance_to(e.end)>0.01:
 				node.look_at(e.end)
+		elif e.mode=="dragon":
+			node.position = e.origin+e.heading*e.distance*t
+			node.scale = e.base*lerpf(0.75,1.2,minf(1,t*4))
 		elif e.mode=="wave":
 			node.scale = e.base*lerpf(e.start_scale,1,t)
 		elif e.mode=="slash":
@@ -255,7 +258,70 @@ func update(delta: float) -> void:
 				node.position = e.target.position+Vector3(0,0.1,0)
 				node.rotation.y += delta*1.6
 				node.scale = e.base*(1+sin(e.age*12)*0.07)
-		fade_children(node,1.0 if e.mode=="bolt" else 1-clampf((t-0.45)/0.55,0,1))
+		fade_children(node,1.0 if e.mode in ["bolt","meteor"] else 1-clampf((t-0.45)/0.55,0,1))
 		if t>=1:
 			node.queue_free()
 			active.remove_at(i)
+
+func dragon_cut(pos: Vector3, heading: Vector3, length: float) -> void:
+	var trail := Node3D.new()
+	trail.position = pos+Vector3(0,0.18,0)
+	beam(trail,Vector3.ZERO,heading*length,0.22,Color("3ee5a0"))
+	beam(trail,Vector3.ZERO,heading*length,0.055,Color("efffe0"))
+	add_effect(trail,0.85,"fade")
+	var dragon := Node3D.new()
+	dragon.position = pos+Vector3(0,1.3,0)
+	dragon.rotation.y = atan2(-heading.x,-heading.z)
+	var spine: Array[Vector3] = []
+	for i in range(19):
+		var p := Vector3(sin(i*0.70)*0.65,cos(i*0.55)*0.25,-i*0.36)
+		spine.append(p)
+		if i>0:
+			beam(dragon,spine[i-1],p,0.15+i*0.022,Color("27d690"))
+			beam(dragon,spine[i-1]+Vector3(0,0.14,0),p+Vector3(0,0.14,0),0.055,Color("d6ffa8"))
+		if i>3 and i%2==0:
+			beam(dragon,p,p+Vector3(0,0.70,0.2),0.10,Color("d5c36e"))
+		if i in [8,14]:
+			for side in [-1,1]:
+				var foot := p+Vector3(side*1.0,-0.48,-0.2)
+				beam(dragon,p,foot,0.13,Color("27d690"))
+				for j in range(3): beam(dragon,foot,foot+Vector3(side*0.30,-0.12,-0.30-j*0.12),0.045,Color("f0db8e"))
+	var head := Node3D.new()
+	head.position = spine.back()+Vector3(0,0,-0.48)
+	dragon.add_child(head)
+	var skull := BoxMesh.new()
+	skull.size = Vector3(1.15,0.85,1.25)
+	mesh(head,skull,Color("33f0a0"))
+	var snout := BoxMesh.new()
+	snout.size = Vector3(0.8,0.36,1.1)
+	mesh(head,snout,Color("95f9a8")).position = Vector3(0,-0.17,-0.8)
+	for side in [-1,1]:
+		var eye := BoxMesh.new()
+		eye.size = Vector3(0.20,0.18,0.09)
+		mesh(head,eye,Color("fff4a0")).position = Vector3(side*0.43,0.15,-0.65)
+		beam(head,Vector3(side*0.40,0.32,0.1),Vector3(side*0.9,1.15,0.62),0.10,Color("f4d782"))
+		beam(head,Vector3(side*0.39,-0.12,-1.2),Vector3(side*1.15,-0.05,-1.52),0.045,Color("e4f7a4"))
+		beam(head,Vector3(side*0.29,-0.30,-1.14),Vector3(side*0.29,-0.62,-1.14),0.06,Color("fff9d1"))
+	add_effect(dragon,1.15,"dragon",{"heading":heading,"distance":minf(length*0.20,10.0)})
+	wave(pos,2.2,Color("5ef0a0"),0.5)
+
+func meteor_rain(pos: Vector3, radius: float, travel: float) -> void:
+	wave(pos,radius,Color("ffac50"),travel,1.0)
+	for i in range(13):
+		var a := i*2.39996
+		var r := sqrt(float(i)/12)*radius*0.90
+		var end := pos+Vector3(sin(a)*r,0.4,cos(a)*r)
+		var start := end+Vector3(-2.5,11+float(i%3),1.0)
+		var ball := Node3D.new()
+		ball.position = start
+		var shape := SphereMesh.new()
+		shape.radius = 0.40+float(i%3)*0.09
+		shape.height = shape.radius*2
+		mesh(ball,shape,Color("ff7737"))
+		var core := SphereMesh.new()
+		core.radius = shape.radius*0.65
+		core.height = core.radius*2
+		mesh(ball,core,Color("fff0a4"))
+		beam(ball,Vector3.ZERO,Vector3(-1.1,2.6,0.45),0.22,Color("ffb447"))
+		beam(ball,Vector3.ZERO,Vector3(-0.8,1.9,0.32),0.08,Color("fff2b9"))
+		add_effect(ball,travel,"meteor",{"start":start,"end":end,"travel":travel})

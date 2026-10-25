@@ -25,10 +25,29 @@ var stage_demo := false
 var stage_demo_tick := 0
 
 const HEROES = [
-	{"name":"青龙战将", "role":"近战横扫 · 220 血量 · 普攻 30", "hp":220.0,"damage":30.0,"rate":0.8,"color":Color("21c78b"),"q":6.0,"e":14.0},
-	{"name":"赤焰游侠", "role":"远程速射 · 140 血量 · 普攻 18", "hp":140.0,"damage":18.0,"rate":0.35,"color":Color("ff884b"),"q":5.0,"e":16.0},
-	{"name":"寒霜术士", "role":"冰霜控制 · 160 血量 · 普攻 24", "hp":160.0,"damage":24.0,"rate":0.7,"color":Color("64c9ff"),"q":7.0,"e":16.0}
+	{"name":"青龙战将", "role":"近战 · 血量 220 / 300 / 350\n普攻 30 · 间隔 0.8 秒", "hp":220.0,"stage_hp":[220.0,300.0,350.0],"q_radius":6.0,"q_damage":70.0,"damage":30.0,"rate":0.8,"color":Color("21c78b"),"q":6.0,"e":14.0},
+	{"name":"赤焰游侠", "role":"速射 · 血量 160 / 200 / 260\n普攻 18 · 间隔 0.35 秒", "hp":160.0,"stage_hp":[160.0,200.0,260.0],"q_radius":10.0,"q_damage":75.0,"damage":18.0,"rate":0.35,"color":Color("ff884b"),"q":5.0,"e":16.0},
+	{"name":"寒霜术士", "role":"冰霜 · 血量 180 / 220 / 260\n普攻 24 · 间隔 0.7 秒", "hp":180.0,"stage_hp":[180.0,220.0,260.0],"q_radius":8.0,"q_damage":45.0,"damage":24.0,"rate":0.7,"color":Color("64c9ff"),"q":7.0,"e":16.0}
 ]
+const SKILL_NAMES = [["青龙横扫","破阵突击","绝气斩"],["爆裂弹","火力全开","火球天降"],["冰霜新星","极寒爆发","四方霜降"]]
+const THIRD_COOLDOWN := 20.0
+const DRAGON_RANGE := 48.0
+const DRAGON_HALF_WIDTH := 1.6
+const FROST_RADIUS := 6.0
+const FROST_HALF_WIDTH := 0.95
+const FROST_PULSES := 12
+var w_clock := 0.0
+var armor_bonus := 0.0
+var difficulty := 1
+var difficulty_picker: OptionButton
+var ultimate_jobs: Array = []
+var frost_age := -1.0
+var frost_pulses := 0
+var frost_heading := Vector3.FORWARD
+var skill_preview := -1
+var ultimate_demo := false
+var ultimate_demo_tick := 0
+
 const ENEMIES = [
 	{"hp":60.0,"damage":10.0,"speed":1.35,"color":Color("85997a"),"scale":1.0},
 	{"hp":40.0,"damage":8.0,"speed":2.8,"color":Color("a0ab78"),"scale":0.8},
@@ -187,9 +206,9 @@ func _ready() -> void:
 	banner.add_theme_color_override("font_outline_color",Color("0e1c28"))
 	banner_hint = label(ui,"",Vector2(420,227),18)
 	banner_hint.add_theme_constant_override("outline_size",5)
-	for i in range(2):
+	for i in range(3):
 		var skill_button := Button.new()
-		skill_button.position = Vector2(1060,640+i*72)
+		skill_button.position = Vector2(1060,568+i*72)
 		skill_button.size = Vector2(200,62)
 		skill_button.focus_mode = Control.FOCUS_NONE
 		skill_button.add_theme_font_size_override("font_size",17)
@@ -269,6 +288,10 @@ func _ready() -> void:
 			stage_preview = i
 	if stage_preview>=0:
 		setup_stage_preview(stage_preview)
+	ultimate_demo = "--ultimate-demo" in OS.get_cmdline_user_args()
+	for i in range(3):
+		if ("--skill-preview="+str(i)) in OS.get_cmdline_user_args(): skill_preview = i
+	if skill_preview>=0: setup_ultimate_preview(skill_preview)
 	if auto_test:
 		start_game(0)
 
@@ -332,14 +355,14 @@ func show_menu() -> void:
 	playing = false
 	paused = false
 	choosing = false
-	var col := panel("积木 / 远征", "三关远征：非洲草原 → 埃及金字塔 → 中国长城 · 选择英雄出战")
+	var col := panel("积木 / 远征", "非洲草原 → 埃及金字塔 → 中国长城 · 选择英雄出战")
 	col.position = Vector2(60,28)
 	col.custom_minimum_size = Vector2(1160,0)
 	col.add_theme_constant_override("separation",12)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation",16)
 	col.add_child(row)
-	var descriptions := ["Q 青龙横扫 · 近身清场\nE 破阵突击 · 位移免伤", "Q 爆裂弹 · 范围打击\nE 火力全开 · 连续速射", "Q 冰霜新星 · 群体减速\nE 极寒爆发 · 冰霜爆发"]
+	var descriptions := ["Q 青龙横扫 · 半径 6\nE 破阵突击 · 位移免伤\nF 绝气斩 · 龙形剑气", "Q 爆裂弹 · 半径 10\nE 火力全开 · 持续 8 秒\nF 火球天降 · 180 伤害", "Q 冰霜新星 · 半径 8\nE 极寒爆发 · 半径 10\nF 四方霜降 · 持续冰箭"]
 	for i in range(3):
 		var card := PanelContainer.new()
 		card.custom_minimum_size = Vector2(376,0)
@@ -367,7 +390,7 @@ func show_menu() -> void:
 		button(body,"选择出战",start_game.bind(i))
 		body.get_child(body.get_child_count()-1).custom_minimum_size = Vector2(352,50)
 	var tip := Label.new()
-	tip.text = "WASD / 方向键移动    Q / E 技能    空格闪避    Esc 暂停\n三关连续挑战 · 每关三波，清空全部敌人后晋级 · 等级与强化继承\n1/2/3 视角 · V 切换 · 右键旋转 · 滚轮缩放 · R 复位"
+	tip.text = "WASD / 方向键移动    Q / E / F 技能    空格闪避    Esc 暂停\n三关连续挑战 · 每关三波，清空全部敌人后晋级 · 等级与强化继承\n1/2/3 视角 · V 切换 · 右键旋转 · 滚轮缩放 · R 复位"
 	tip.add_theme_font_size_override("font_size",17)
 	col.add_child(tip)
 	var catalog := Button.new()
@@ -377,12 +400,21 @@ func show_menu() -> void:
 	catalog.add_theme_font_size_override("font_size",20)
 	catalog.pressed.connect(show_zombie_gallery)
 	menu.add_child(catalog)
+	difficulty_picker = OptionButton.new()
+	difficulty_picker.position = Vector2(910,104)
+	difficulty_picker.size = Vector2(300,35)
+	for title in ["简单 · 敌人三项降低 20%","普通 · 标准挑战","困难 · 分关强化敌人"]:
+		difficulty_picker.add_item(title)
+	difficulty_picker.select(difficulty)
+	difficulty_picker.item_selected.connect(func(index: int): difficulty = index)
+	difficulty_picker.tooltip_text = "简单：血量、速度、伤害 ×0.8\n普通：原有数值\n困难：第一关血量与速度 ×1.10，伤害不变；第二关三项 ×1.15；第三关三项 ×1.20"
+	menu.add_child(difficulty_picker)
 
 func show_zombie_gallery() -> void:
 	playing = false
 	paused = false
 	choosing = false
-	var col := panel(Campaign.TITLES[gallery_stage]+" · 敌人图鉴", "拖动可旋转模型 · 草原野兽 / 木乃伊 / 兵马俑")
+	var col := panel(Campaign.TITLES[gallery_stage]+" · 敌人图鉴", "拖动可旋转模型 · 当前难度：%s" % Campaign.DIFFICULTIES[difficulty])
 	col.position = Vector2(60,28)
 	col.custom_minimum_size = Vector2(1160,0)
 	col.add_theme_constant_override("separation",12)
@@ -413,8 +445,8 @@ func show_zombie_gallery() -> void:
 		body.add_theme_constant_override("separation",9)
 		card.add_child(body)
 		make_portrait(body,i,true)
-		var data := Campaign.stats(gallery_stage,i,ENEMIES[i])
-		var stats := "血量 %d / 伤害 %d\n体型 ×%.1f" % [data.hp,data.damage,data.scale]
+		var data := Campaign.stats(gallery_stage,i,ENEMIES[i],difficulty)
+		var stats := "血量 %.1f / 伤害 %.1f\n体型 ×%.1f" % [data.hp,data.damage,data.scale]
 		for entry in [[names[i],22],[stats,16],[descriptions[i],14]]:
 			var text := Label.new()
 			text.text = entry[0]
@@ -434,7 +466,7 @@ func show_zombie_gallery() -> void:
 
 func make_portrait(parent: Control, index: int, is_zombie := false) -> void:
 	var holder := SubViewportContainer.new()
-	holder.custom_minimum_size = Vector2(196,285) if is_zombie else Vector2(352,300)
+	holder.custom_minimum_size = Vector2(196,285) if is_zombie else Vector2(352,265)
 	holder.stretch = true
 	holder.mouse_default_cursor_shape = Control.CURSOR_DRAG
 	parent.add_child(holder)
@@ -519,6 +551,7 @@ func start_game(index: int) -> void:
 	if is_instance_valid(player):
 		player.queue_free()
 	hero = index
+	armor_bonus = 0
 	max_hp = HEROES[hero].hp
 	hp = max_hp
 	elapsed = 0
@@ -582,6 +615,9 @@ func clear_battle() -> void:
 	bullets.clear()
 	shots.clear()
 	swings.clear()
+	ultimate_jobs.clear()
+	frost_age = -1
+	frost_pulses = 0
 	fx.clear()
 	shake_strength = 0
 
@@ -600,9 +636,11 @@ func begin_stage(index: int) -> void:
 	activate_scenery(stage_index)
 	player.position = Vector3.ZERO
 	player.rotation = Vector3.ZERO
+	max_hp = HEROES[hero].stage_hp[stage_index]+armor_bonus
 	hp = max_hp
 	q_clock = 0
 	e_clock = 0
+	w_clock = 0
 	dash_clock = 0
 	attack_clock = 0.4
 	invuln = 1.5
@@ -673,7 +711,7 @@ func setup_stage_preview(index: int) -> void:
 	if stage_preview>=0: banner_time = 0
 
 func spawn_enemy(kind: int) -> Dictionary:
-	var data := Campaign.stats(stage_index,kind,ENEMIES[kind])
+	var data := Campaign.stats(stage_index,kind,ENEMIES[kind],difficulty)
 	var node := CampaignEnemy.new()
 	node.build_for_stage(stage_index,kind,randi_range(0,2))
 	node.phase = randf()*TAU
@@ -719,6 +757,7 @@ func hurt(e: Dictionary, amount: float, heavy := false, frost := false) -> void:
 		return
 	var pos: Vector3 = e.node.position
 	e.hp -= amount
+	if e.hp<0.00001: e.hp = 0
 	e.bar.scale.x = maxf(0,e.hp/e.data.hp)
 	flash_enemy(e)
 	fx.impact(pos,Color("9deeff") if frost else HEROES[hero].color,heavy)
@@ -797,33 +836,33 @@ func damage_player(amount: float) -> void:
 
 func area_damage(radius: float, amount: float, slow := false, heavy := true) -> void:
 	for e in enemies:
-		if not e.get("dead",false) and e.node.position.distance_to(player.position)<radius:
+		if not e.get("dead",false) and e.node.position.distance_to(player.position)<=radius:
 			if slow:
 				e.slow = maxf(e.slow,3.0)
 			hurt(e,amount*damage_mult,heavy,slow)
 
 func skill(which: int) -> void:
-	if not playing or choosing:
-		return
-	var remaining := q_clock if which==0 else e_clock
+	if not playing or choosing or which<0 or which>2: return
+	var remaining := skill_cooldown(which)
 	if remaining>0:
 		announce("技能冷却中","还需 %.1f 秒" % remaining,Color("c6d2de"))
 		return
 	var color: Color = HEROES[hero].color
 	if which==0:
 		q_clock = HEROES[hero].q
+		var radius: float = HEROES[hero].q_radius
 		if hero==0:
-			fx.slash(player.position,player.rotation.y,4.5,color,true)
-			fx.wave(player.position,4.5,color,0.65)
-			announce("Q · 青龙横扫","旋身斩击 · 70 范围伤害",color)
+			fx.slash(player.position,player.rotation.y,radius,color,true)
+			fx.wave(player.position,radius,color,0.65)
+			announce("Q · 青龙横扫","半径 6 · 70 范围伤害",color)
 		elif hero==1:
-			fx.explosion(player.position,6.0)
-			announce("Q · 爆裂弹","爆炸冲击 · 65 范围伤害",Color("ffc677"))
+			fx.explosion(player.position,radius)
+			announce("Q · 爆裂弹","半径 10 · 75 范围伤害",Color("ffc677"))
 		else:
-			fx.frost_field(player.position,6.0)
-			announce("Q · 冰霜新星","冰晶扩散 · 45 伤害 · 减速 3 秒",color)
-		area_damage(4.5 if hero==0 else 6.0,70.0 if hero==0 else 65.0 if hero==1 else 45.0,hero==2)
-	else:
+			fx.frost_field(player.position,radius)
+			announce("Q · 冰霜新星","半径 8 · 45 伤害 · 减速 3 秒",color)
+		area_damage(radius,HEROES[hero].q_damage,hero==2)
+	elif which==1:
 		e_clock = HEROES[hero].e
 		if hero==0:
 			invuln = 1.0
@@ -836,17 +875,90 @@ func skill(which: int) -> void:
 			area_damage(5,120)
 			announce("E · 破阵突击","突进残影 · 120 伤害 · 免伤 1 秒",color)
 		elif hero==1:
-			buff = 5
-			fx.aura(player,Color("ff9a47"),5.0)
+			buff = 8
+			fx.aura(player,Color("ff9a47"),8.0)
 			fx.wave(player.position,2.0,Color("ffd97c"),0.6)
-			announce("E · 火力全开","强化弹道 · 攻击间隔缩短 40% · 持续 5 秒",Color("ffc677"))
+			announce("E · 火力全开","攻击间隔缩短 40% · 持续 8 秒",Color("ffc677"))
 		else:
-			fx.frost_field(player.position,8.0,true)
-			area_damage(8,120,true)
-			announce("E · 极寒爆发","冰刺爆发 · 120 伤害 · 减速 3 秒",color)
+			fx.frost_field(player.position,10.0,true)
+			area_damage(10,120,true)
+			announce("E · 极寒爆发","半径 10 · 120 伤害 · 减速 3 秒",color)
+	else:
+		w_clock = THIRD_COOLDOWN
+		cast_third_skill()
+		attack_clock = maxf(attack_clock,0.4)
 	player.cast(which)
-	shake_strength = maxf(shake_strength,0.12 if which==0 else 0.18)
+	shake_strength = maxf(shake_strength,0.12 if which==0 else 0.18 if which==1 else 0.25)
 	tone(180+hero*170+which*70)
+
+func skill_cooldown(which: int) -> float:
+	return q_clock if which==0 else e_clock if which==1 else w_clock
+
+func in_line(point: Vector3, origin: Vector3, heading: Vector3, length: float, half_width: float) -> bool:
+	var offset := point-origin
+	offset.y = 0
+	var along := offset.dot(heading)
+	return along>=0 and along<=length and (offset-heading*along).length()<=half_width
+
+func cast_third_skill() -> void:
+	var origin := player.position
+	var heading := -player.global_basis.z
+	heading.y = 0
+	heading = heading.normalized()
+	if hero==0:
+		fx.dragon_cut(origin,heading,DRAGON_RANGE)
+		for e in enemies:
+			if not e.get("dead",false) and in_line(e.node.position,origin,heading,DRAGON_RANGE,DRAGON_HALF_WIDTH):
+				hurt(e,maxf(e.hp,1),true)
+		announce("F · 绝气斩","大刀下斩 · 前方龙形剑气直线清敌",HEROES[0].color)
+	elif hero==1:
+		fx.meteor_rain(origin,10.0,0.65)
+		ultimate_jobs.append({"mode":"meteor","delay":0.65,"origin":origin,"damage":180.0*damage_mult})
+		announce("F · 火球天降","半径 10 · 火球落地造成 180 伤害",Color("ffbc68"))
+	else:
+		frost_age = 0
+		frost_pulses = 0
+		frost_heading = heading
+		fx.frost_field(origin,FROST_RADIUS)
+		fx.aura(player,Color("84dcff"),3.0)
+		emit_frost_pulse()
+		announce("F · 四方霜降","四向冰箭 · 持续 3 秒 · 总伤害 200",HEROES[2].color)
+
+func emit_frost_pulse() -> void:
+	var origin := player.position
+	for i in range(4):
+		var heading := frost_heading.rotated(Vector3.UP,i*PI/2)
+		fx.bolt(origin+Vector3(0,1.2,0)+heading*0.6,origin+Vector3(0,1.2,0)+heading*FROST_RADIUS,Color("97ecff"),0.18,true)
+	ultimate_jobs.append({"mode":"frost","delay":0.18,"origin":origin,"heading":frost_heading,"damage":(floorf(200.0*(frost_pulses+1)/FROST_PULSES)-floorf(200.0*frost_pulses/FROST_PULSES))*damage_mult})
+	frost_pulses += 1
+
+func update_third_skills(delta: float) -> void:
+	for i in range(ultimate_jobs.size()-1,-1,-1):
+		var job: Dictionary = ultimate_jobs[i]
+		job.delay -= delta
+		if job.delay>0: continue
+		if job.mode=="meteor":
+			fx.explosion(job.origin,10.0)
+			for n in range(13):
+				var angle := n*2.39996
+				var radius := sqrt(float(n)/12)*9.0
+				fx.impact(job.origin+Vector3(sin(angle)*radius,0,cos(angle)*radius),Color("ffb669"),true)
+			for e in enemies:
+				if not e.get("dead",false) and e.node.position.distance_to(job.origin)<=10.0:
+					hurt(e,job.damage,true)
+		else:
+			for e in enemies:
+				if e.get("dead",false) or e.node.position.distance_to(job.origin)>FROST_RADIUS: continue
+				var hit := false
+				for side in range(4):
+					hit = hit or in_line(e.node.position,job.origin,job.heading.rotated(Vector3.UP,side*PI/2),FROST_RADIUS,FROST_HALF_WIDTH)
+				if hit: hurt(e,job.damage,false,true)
+		ultimate_jobs.remove_at(i)
+	if frost_age>=0:
+		frost_age += delta
+		while frost_pulses<FROST_PULSES and frost_age+0.00001>=frost_pulses*0.25:
+			emit_frost_pulse()
+		if frost_age>=3.0: frost_age = -1
 
 func update_view_ui() -> void:
 	stage_hud.visible = playing and not choosing
@@ -922,6 +1034,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		skill(0)
 	if event.keycode == KEY_E:
 		skill(1)
+	if event.keycode == KEY_F:
+		skill(2)
 	if event.keycode == KEY_SPACE and dash_clock<=0:
 		dash_clock = 3
 		invuln = 0.45
@@ -940,12 +1054,14 @@ func upgrade(choice: int) -> void:
 	if choice == 0:
 		damage_mult += 0.2
 	elif choice == 1:
+		armor_bonus += 40
 		max_hp += 40
 		hp = minf(hp+65,max_hp)
 	else:
 		hp = minf(hp+100,max_hp)
 		q_clock = 0
 		e_clock = 0
+		w_clock = 0
 	choosing = false
 	update_view_ui()
 	if is_instance_valid(menu):
@@ -973,6 +1089,32 @@ func demo_segment(index: int) -> void:
 		e.cooldown = 100
 	announce(HEROES[index].name+" · 普通攻击","自动锁定 · 观察出手、弹道与命中反馈",HEROES[index].color)
 
+func setup_ultimate_preview(index: int) -> void:
+	start_game(index)
+	spawn_clock = 100
+	attack_clock = 100
+	var positions: Array = []
+	if index==0:
+		positions = [Vector3(0,0,-3),Vector3(0.4,0,-8),Vector3(-0.4,0,-13),Vector3(0,0,-18),Vector3(4,0,-8)]
+	elif index==1:
+		for i in range(12): positions.append(Vector3(sin(i*TAU/12)*7,0,cos(i*TAU/12)*7))
+	else:
+		for i in range(4):
+			for r in [5.4]: positions.append(Vector3(sin(i*PI/2)*r,0,-cos(i*PI/2)*r))
+	for pos in positions:
+		var e := spawn_enemy(2)
+		e.node.position = pos
+		e.cooldown = 100
+	view_rig.set_mode(0,player.position,true)
+	view_rig.zoom_value = 29
+	if index==0:
+		view_rig.set_mode(1,player.position,true)
+		view_rig.zoom_value = 23
+		view_rig.pitch = deg_to_rad(36)
+		view_rig.yaw = -0.35
+	view_rig.update(player.position,0,true)
+	announce(HEROES[index].name+" · 第三技能","F 键 / 屏幕按钮 · 冷却 20 秒",HEROES[index].color)
+
 func setup_camera_scene(index: int) -> void:
 	start_game(0)
 	spawn_clock = 100
@@ -987,6 +1129,21 @@ func setup_camera_scene(index: int) -> void:
 
 func _process(delta: float) -> void:
 	delta = minf(delta,0.05)
+	if ultimate_demo:
+		var frame := ultimate_demo_tick%210
+		if frame==0: setup_ultimate_preview(ultimate_demo_tick/210)
+		if frame==30: skill(2)
+		ultimate_demo_tick += 1
+		if ultimate_demo_tick>=630:
+			get_tree().quit()
+			return
+	if skill_preview>=0:
+		preview_frames += 1
+		if preview_frames==2: skill(2)
+		if preview_frames==(13 if skill_preview!=2 else 25):
+			get_viewport().get_texture().get_image().save_png("res://dist/ultimate-%d.png" % skill_preview)
+			get_tree().quit()
+			return
 	if stage_demo:
 		var frame := stage_demo_tick%210
 		if frame==0:
@@ -1083,6 +1240,7 @@ func step(delta: float) -> void:
 	attack_clock -= delta
 	q_clock = maxf(0,q_clock-delta)
 	e_clock = maxf(0,e_clock-delta)
+	w_clock = maxf(0,w_clock-delta)
 	invuln = maxf(0,invuln-delta)
 	dash_clock = maxf(0,dash_clock-delta)
 	buff = maxf(0,buff-delta)
@@ -1156,6 +1314,7 @@ func step(delta: float) -> void:
 		perform_attack(nearest)
 	update_swings(delta)
 	update_shots(delta)
+	update_third_skills(delta)
 	fx.update(delta)
 	shake_strength = move_toward(shake_strength,0,delta*0.75)
 	camera.position += Vector3(sin(elapsed*71),sin(elapsed*53),0)*shake_strength
@@ -1178,7 +1337,7 @@ func step(delta: float) -> void:
 		if enemies[i].get("dead",false):
 			enemies.remove_at(i)
 	check_wave_clear()
-	if xp >= level*8 and playing and not auto_test and not preview and combat_preview<0 and not combat_demo and not camera_demo and camera_preview<0 and not stage_demo and stage_preview<0 and not choosing:
+	if xp >= level*8 and playing and not auto_test and not preview and combat_preview<0 and not combat_demo and not camera_demo and camera_preview<0 and not stage_demo and stage_preview<0 and not choosing and not ultimate_demo and skill_preview<0:
 		xp -= level*8
 		level += 1
 		choosing = true
@@ -1188,19 +1347,21 @@ func step(delta: float) -> void:
 		button(col,"重整旗鼓    /    恢复 100 血量，立即刷新技能",upgrade.bind(2))
 	hp_bar.max_value = max_hp
 	hp_bar.value = hp
-	stage_hud.text = "第 %d / 3 关 · %s    |    第 %d / 3 波    |    净化 %d / %d" % [stage_index+1,Campaign.TITLES[stage_index],wave_index+1,stage_kills,Campaign.total(stage_index)]
+	stage_hud.text = "%s · 第 %d / 3 关 · %s    |    第 %d / 3 波    |    净化 %d / %d" % [Campaign.DIFFICULTIES[difficulty],stage_index+1,Campaign.TITLES[stage_index],wave_index+1,stage_kills,Campaign.total(stage_index)]
 	hud.text = "%s    %d / %d 血量                 %02d:%02d    /    击败 %d    /    等级 %d" % [HEROES[hero].name,maxi(0,int(hp)),int(max_hp),int(elapsed)/60,int(elapsed)%60,kills,level]
-	var names: Array = [["青龙横扫","破阵突击"],["爆裂弹","火力全开"],["冰霜新星","极寒爆发"]][hero]
-	for i in range(2):
-		var cooldown := q_clock if i==0 else e_clock
-		skill_buttons[i].text = ("Q · " if i==0 else "E · ")+names[i]+"\n"+("点击释放" if cooldown<=0 else "%.1f 秒" % cooldown)
+	var names: Array = SKILL_NAMES[hero]
+	for i in range(3):
+		var cooldown := skill_cooldown(i)
+		skill_buttons[i].text = ["Q · ","E · ","F · "][i]+names[i]+"\n"+("点击释放" if cooldown<=0 else "%.1f 秒" % cooldown)
 		if hero==1 and i==1 and buff>0:
 			skill_buttons[i].text = "E · 火力全开\n强化中 %.1f 秒" % buff
 			skill_buttons[i].modulate = Color("ffd29a")
+		elif hero==2 and i==2 and frost_age>=0:
+			skill_buttons[i].text = "F · 四方霜降\n持续中 %.1f 秒" % (3.0-frost_age)
 		else:
 			skill_buttons[i].modulate = Color.WHITE
 		skill_buttons[i].disabled = cooldown>0
-	status.text = "Q %s  %s     E %s  %s     空格闪避  %s\nWASD 移动 · 自动攻击 · 击杀经验 %d / %d · 清空本关全部敌人后晋级" % [names[0],"就绪" if q_clock<=0 else "%.1fs" % q_clock,names[1],"就绪" if e_clock<=0 else "%.1fs" % e_clock,"就绪" if dash_clock<=0 else "%.1fs" % dash_clock,xp,level*8]
+	status.text = "Q %s  %s     E %s  %s     F %s  %s\nWASD 移动 · 空格闪避 · 击杀经验 %d / %d · 清空本关全部敌人后晋级" % [names[0],"就绪" if q_clock<=0 else "%.1fs" % q_clock,names[1],"就绪" if e_clock<=0 else "%.1fs" % e_clock,names[2],"就绪" if w_clock<=0 else "%.1fs" % w_clock,xp,level*8]
 
 func check(condition: bool, description: String) -> void:
 	if not condition:
@@ -1546,6 +1707,199 @@ func combat_checks() -> void:
 	fx.update(1)
 	check(fx.active.is_empty(),"expired FX are released")
 
+func balance_checks() -> void:
+	for stage in range(3):
+		for kind in range(5):
+			var base: Dictionary = ENEMIES[kind].duplicate()
+			var normal := Campaign.stats(stage,kind,base,1)
+			var easy := Campaign.stats(stage,kind,base,0)
+			var hard := Campaign.stats(stage,kind,base,2)
+			var rate: float = [1.10,1.15,1.20][stage]
+			check(is_equal_approx(easy.hp,normal.hp*0.8) and is_equal_approx(easy.speed,normal.speed*0.8) and is_equal_approx(easy.damage,normal.damage*0.8),"easy stage %d enemy %d reduces all three stats by 20 percent" % [stage,kind])
+			check(is_equal_approx(hard.hp,normal.hp*rate) and is_equal_approx(hard.speed,normal.speed*rate) and is_equal_approx(hard.damage,normal.damage*(1.0 if stage==0 else rate)),"hard stage %d enemy %d applies the specified stage multiplier" % [stage,kind])
+			check(base==ENEMIES[kind] and Campaign.stats(stage,kind,base,1)==normal,"difficulty calculations cannot mutate normal-mode base stats")
+	for setting in range(3):
+		difficulty = setting
+		start_game(0)
+		begin_stage(2)
+		var target := spawn_enemy(2)
+		var expected := Campaign.stats(2,2,ENEMIES[2],setting)
+		check(target.hp==expected.hp and target.data.speed==expected.speed and target.data.damage==expected.damage,"difficulty %d is used by real spawned enemies" % setting)
+		show_menu()
+		check(difficulty_picker.item_count==3 and difficulty_picker.selected==setting,"difficulty %d remains selected after returning to hero selection" % setting)
+	for setting in range(3):
+		for stage in range(3):
+			difficulty = setting
+			start_game(0)
+			begin_stage(stage)
+			spawn_clock = 100
+			attack_clock = 100
+			var e := spawn_enemy(0)
+			e.node.position = Vector3(0,0,-5)
+			e.cooldown = 100
+			step(0.1)
+			check(is_equal_approx(e.node.position.z,-5+e.data.speed*0.1),"difficulty %d stage %d changes actual enemy movement" % [setting,stage])
+			e.node.position = Vector3(1.2,0,0)
+			e.cooldown = 0
+			invuln = 0
+			var previous := hp
+			step(0.01)
+			check(is_equal_approx(hp,previous-e.data.damage),"difficulty %d stage %d changes actual enemy attack damage" % [setting,stage])
+	show_menu()
+	difficulty_picker.select(0)
+	difficulty_picker.item_selected.emit(0)
+	start_game(1)
+	check(difficulty==0 and is_equal_approx(spawn_enemy(4).hp,Campaign.BOSS_HP[0]*0.8),"difficulty selector controls the next run including bosses")
+	difficulty = 1
+	for index in range(3):
+		start_game(index)
+		for stage in range(3):
+			begin_stage(stage)
+			check(hp==HEROES[index].stage_hp[stage] and max_hp==hp,"hero %d uses the requested stage %d base health" % [index,stage])
+		start_game(index)
+		upgrade(1)
+		for stage in range(3):
+			begin_stage(stage)
+			check(armor_bonus==40 and max_hp==HEROES[index].stage_hp[stage]+40 and hp==max_hp,"hero %d stage %d adds retained armour to stage base health" % [index,stage])
+	start_game(0)
+
+func third_skill_checks() -> void:
+	difficulty = 1
+	for index in range(3):
+		start_game(index)
+		var inside := spawn_enemy(2)
+		var outside := spawn_enemy(2)
+		inside.node.position = Vector3(HEROES[index].q_radius,0,0)
+		outside.node.position = Vector3(HEROES[index].q_radius+0.1,0,0)
+		skill(0)
+		check(is_equal_approx(inside.hp,240.0-HEROES[index].q_damage) and outside.hp==240,"hero %d Q uses its requested radius and base damage" % index)
+		check(q_clock==HEROES[index].q,"hero %d Q retains the requested cooldown" % index)
+	start_game(1)
+	skill(1)
+	check(buff==8 and e_clock==16,"ranger firepower buff lasts eight seconds with sixteen-second cooldown")
+	spawn_clock = 100
+	attack_clock = 0
+	var ranged := spawn_enemy(2)
+	ranged.node.position = Vector3(0,0,-7)
+	ranged.cooldown = 100
+	step(0.01)
+	check(is_equal_approx(attack_clock,HEROES[1].rate*0.6),"ranger buff reduces the real automatic attack interval by forty percent")
+	clear_battle()
+	spawn_clock = 100
+	for i in range(160): step(0.05)
+	check(buff==0,"ranger buff expires after eight seconds of active battle")
+	start_game(2)
+	var near := spawn_enemy(2)
+	var far := spawn_enemy(2)
+	near.node.position = Vector3(9.9,0,0)
+	far.node.position = Vector3(10.1,0,0)
+	skill(1)
+	check(near.hp==120 and near.slow==3 and far.hp==240,"oracle E reaches radius ten and preserves damage and slow")
+	start_game(0)
+	var line := spawn_enemy(2)
+	var boss := spawn_enemy(4)
+	var beside := spawn_enemy(2)
+	var behind := spawn_enemy(2)
+	line.node.position = Vector3(1.4,0,-5)
+	boss.node.position = Vector3(0,0,-18)
+	beside.node.position = Vector3(1.8,0,-5)
+	behind.node.position = Vector3(0,0,3)
+	skill(2)
+	check(line.get("dead",false) and boss.get("dead",false) and beside.hp==240 and behind.hp==240,"dragon cut instantly clears the forward lane including a boss, leaving side and rear enemies")
+	var dragon := false
+	for effect in fx.active: dragon = dragon or effect.mode=="dragon"
+	check(dragon and player.cast_variant==2 and player.skill_time>0,"dragon cut combines dragon-shaped energy and the dedicated overhead slash")
+	check(w_clock==20 and playing and not campaign_won,"third skill cooldown is twenty seconds and dragon kills cannot bypass stage clearance")
+	var old_kills := kills
+	skill(2)
+	check(kills==old_kills and w_clock==20,"third skill cannot bypass its cooldown or reward dead enemies twice")
+	start_game(1)
+	near = spawn_enemy(2)
+	far = spawn_enemy(2)
+	near.node.position = Vector3(-9.8,0,0)
+	far.node.position = Vector3(10.1,0,0)
+	skill(2)
+	var meteors := 0
+	for effect in fx.active:
+		if effect.mode=="meteor": meteors += 1
+	check(meteors==13 and near.hp==240 and ultimate_jobs.size()==1,"meteor skill visibly falls before applying damage")
+	update_third_skills(0.30)
+	check(near.hp==240,"meteor damage waits for landing")
+	player.position = Vector3(15,0,0)
+	update_third_skills(0.36)
+	check(near.hp==60 and far.hp==240 and ultimate_jobs.is_empty(),"meteor landing deals 180 once in radius ten at the marked cast location")
+	start_game(2)
+	var targets: Array = []
+	for pos in [Vector3(0,0,-5),Vector3(5,0,0),Vector3(0,0,5),Vector3(-5,0,0),Vector3.ZERO,Vector3(4,0,4),Vector3(0,0,-6.1)]:
+		var e := spawn_enemy(2)
+		e.node.position = pos
+		targets.append(e)
+	skill(2)
+	check(targets[0].hp==240 and frost_pulses==1,"four-direction frost starts with visible projectiles before impact")
+	for i in range(65):
+		update_third_skills(0.05)
+		fx.update(0.05)
+	var correct := true
+	for i in range(5): correct = correct and is_equal_approx(targets[i].hp,40)
+	check(correct,"four-direction frost deals 200 total per covered target without quadrupling centre damage")
+	check(targets[5].hp==240 and targets[6].hp==240,"frost arrows respect four narrow lanes and radius six")
+	check(frost_pulses==12 and frost_age<0 and ultimate_jobs.is_empty(),"frost barrage ends after three seconds and twelve pulses")
+	start_game(2)
+	skill(2)
+	var old_age := frost_age
+	var old_delay: float = ultimate_jobs[0].delay
+	var old_w := w_clock
+	playing = false
+	auto_test = false
+	_process(0.5)
+	auto_test = true
+	check(frost_age==old_age and ultimate_jobs[0].delay==old_delay and w_clock==old_w,"pause freezes channel time, pending impacts and third-skill cooldown")
+	playing = true
+	choosing = true
+	auto_test = false
+	_process(0.5)
+	auto_test = true
+	check(frost_age==old_age and ultimate_jobs[0].delay==old_delay and w_clock==old_w,"upgrade selection also freezes sustained third skills")
+	choosing = false
+	begin_stage(1)
+	check(w_clock==0 and frost_age<0 and ultimate_jobs.is_empty() and fx.active.is_empty(),"new stage refreshes the third skill and clears old channels, falling fireballs and impacts")
+	start_game(1)
+	var key := InputEventKey.new()
+	key.pressed = true
+	key.keycode = KEY_W
+	_unhandled_key_input(key)
+	check(w_clock==0,"W remains movement and cannot accidentally fire the third skill")
+	key.keycode = KEY_F
+	_unhandled_key_input(key)
+	check(w_clock==20 and ultimate_jobs.size()==1,"F keyboard input triggers the third skill")
+	start_game(1)
+	skill_buttons[2].pressed.emit()
+	check(w_clock==20 and ultimate_jobs.size()==1,"third on-screen skill button triggers the actual skill")
+	q_clock = 3
+	e_clock = 3
+	upgrade(2)
+	check(q_clock==0 and e_clock==0 and w_clock==0,"skill-refresh upgrade also refreshes the third slot")
+	start_game(0)
+	spawn_clock = 100
+	attack_clock = 100
+	skill(2)
+	for i in range(399): step(0.05)
+	check(w_clock>0 and w_clock<0.06,"third skill remains unavailable before twenty active seconds")
+	step(0.06)
+	check(w_clock==0 and not skill_buttons[2].disabled,"third skill becomes ready after twenty active seconds")
+	for index in [1,2]:
+		start_game(index)
+		damage_mult = 1.2
+		var target := spawn_enemy(2)
+		target.node.position = Vector3(0,0,-5)
+		skill(2)
+		for i in range(65): update_third_skills(0.05)
+		check(target.get("dead",false) if index==2 else is_equal_approx(target.hp,24),"hero %d third skill receives retained damage upgrades" % index)
+	start_game(2)
+	skill(2)
+	start_game(0)
+	check(w_clock==0 and ultimate_jobs.is_empty() and frost_age<0 and armor_bonus==0,"restart resets third skills, channels and additional armour")
+
 func run_smoke_test() -> void:
 	if test_steps>0:
 		return
@@ -1588,7 +1942,7 @@ func run_smoke_test() -> void:
 		var before: Vector3 = player.position
 		skill(1)
 		check(e_clock>0,"hero %d E cooldown" % index)
-		var skill_effect: bool = player.position.distance_to(before)>5 and invuln>0 if index==0 else buff==5 if index==1 else target.slow>0 and target.hp<previous_hp-100
+		var skill_effect: bool = player.position.distance_to(before)>5 and invuln>0 if index==0 else buff==8 if index==1 else target.slow>0 and target.hp<previous_hp-100
 		check(skill_effect,"hero %d E effect" % index)
 	start_game(0)
 	invuln = 0
@@ -1638,7 +1992,7 @@ func run_smoke_test() -> void:
 	damage_player(1000)
 	check(not playing,"defeat")
 	start_game(2)
-	check(playing and kills==0 and hp==160,"restart resets state")
+	check(playing and kills==0 and hp==180,"restart resets state")
 	for i in range(600):
 		invuln = 1
 		step(0.1)
@@ -1663,5 +2017,7 @@ func run_smoke_test() -> void:
 	campaign_visual_checks()
 	campaign_flow_checks()
 	camera_checks()
+	balance_checks()
+	third_skill_checks()
 	print("SMOKE TEST COMPLETE")
 	get_tree().quit(0)

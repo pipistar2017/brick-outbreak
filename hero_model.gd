@@ -356,6 +356,13 @@ func animate(delta: float, walking: bool, enabled := true) -> void:
 			if cast_variant==0:
 				rig.rotation.y = smoothstep(0.06,0.82,t)*TAU
 				arm_r.rotation.z = -1.1*lift
+			elif cast_variant==2:
+				var cut := smoothstep(0.16,0.48,t)
+				var recover := 1-smoothstep(0.58,1.0,t)
+				arm_r.rotation.x = lerpf(-2.9,0.65,cut)*recover
+				arm_l.rotation.x = -1.6*(1-cut)*recover
+				rig.rotation.x = 0.24*cut*recover
+				arm_r.rotation.z = -0.18*recover
 			else:
 				rig.rotation.x = -0.32*lift
 				arm_r.rotation.x = -1.4*lift

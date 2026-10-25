@@ -278,6 +278,127 @@ PASS: switching views transitions smoothly rather than teleporting
 PASS: paused battles ignore camera controls
 PASS: restart preserves view choice and recenters safely
 PASS: on-screen view button switches mode and updates its label
+PASS: easy stage 0 enemy 0 reduces all three stats by 20 percent
+PASS: hard stage 0 enemy 0 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 0 enemy 1 reduces all three stats by 20 percent
+PASS: hard stage 0 enemy 1 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 0 enemy 2 reduces all three stats by 20 percent
+PASS: hard stage 0 enemy 2 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 0 enemy 3 reduces all three stats by 20 percent
+PASS: hard stage 0 enemy 3 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 0 enemy 4 reduces all three stats by 20 percent
+PASS: hard stage 0 enemy 4 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 1 enemy 0 reduces all three stats by 20 percent
+PASS: hard stage 1 enemy 0 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 1 enemy 1 reduces all three stats by 20 percent
+PASS: hard stage 1 enemy 1 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 1 enemy 2 reduces all three stats by 20 percent
+PASS: hard stage 1 enemy 2 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 1 enemy 3 reduces all three stats by 20 percent
+PASS: hard stage 1 enemy 3 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 1 enemy 4 reduces all three stats by 20 percent
+PASS: hard stage 1 enemy 4 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 2 enemy 0 reduces all three stats by 20 percent
+PASS: hard stage 2 enemy 0 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 2 enemy 1 reduces all three stats by 20 percent
+PASS: hard stage 2 enemy 1 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 2 enemy 2 reduces all three stats by 20 percent
+PASS: hard stage 2 enemy 2 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 2 enemy 3 reduces all three stats by 20 percent
+PASS: hard stage 2 enemy 3 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 2 enemy 4 reduces all three stats by 20 percent
+PASS: hard stage 2 enemy 4 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: difficulty 0 is used by real spawned enemies
+PASS: difficulty 0 remains selected after returning to hero selection
+PASS: difficulty 1 is used by real spawned enemies
+PASS: difficulty 1 remains selected after returning to hero selection
+PASS: difficulty 2 is used by real spawned enemies
+PASS: difficulty 2 remains selected after returning to hero selection
+PASS: difficulty 0 stage 0 changes actual enemy movement
+PASS: difficulty 0 stage 0 changes actual enemy attack damage
+PASS: difficulty 0 stage 1 changes actual enemy movement
+PASS: difficulty 0 stage 1 changes actual enemy attack damage
+PASS: difficulty 0 stage 2 changes actual enemy movement
+PASS: difficulty 0 stage 2 changes actual enemy attack damage
+PASS: difficulty 1 stage 0 changes actual enemy movement
+PASS: difficulty 1 stage 0 changes actual enemy attack damage
+PASS: difficulty 1 stage 1 changes actual enemy movement
+PASS: difficulty 1 stage 1 changes actual enemy attack damage
+PASS: difficulty 1 stage 2 changes actual enemy movement
+PASS: difficulty 1 stage 2 changes actual enemy attack damage
+PASS: difficulty 2 stage 0 changes actual enemy movement
+PASS: difficulty 2 stage 0 changes actual enemy attack damage
+PASS: difficulty 2 stage 1 changes actual enemy movement
+PASS: difficulty 2 stage 1 changes actual enemy attack damage
+PASS: difficulty 2 stage 2 changes actual enemy movement
+PASS: difficulty 2 stage 2 changes actual enemy attack damage
+PASS: difficulty selector controls the next run including bosses
+PASS: hero 0 uses the requested stage 0 base health
+PASS: hero 0 uses the requested stage 1 base health
+PASS: hero 0 uses the requested stage 2 base health
+PASS: hero 0 stage 0 adds retained armour to stage base health
+PASS: hero 0 stage 1 adds retained armour to stage base health
+PASS: hero 0 stage 2 adds retained armour to stage base health
+PASS: hero 1 uses the requested stage 0 base health
+PASS: hero 1 uses the requested stage 1 base health
+PASS: hero 1 uses the requested stage 2 base health
+PASS: hero 1 stage 0 adds retained armour to stage base health
+PASS: hero 1 stage 1 adds retained armour to stage base health
+PASS: hero 1 stage 2 adds retained armour to stage base health
+PASS: hero 2 uses the requested stage 0 base health
+PASS: hero 2 uses the requested stage 1 base health
+PASS: hero 2 uses the requested stage 2 base health
+PASS: hero 2 stage 0 adds retained armour to stage base health
+PASS: hero 2 stage 1 adds retained armour to stage base health
+PASS: hero 2 stage 2 adds retained armour to stage base health
+PASS: hero 0 Q uses its requested radius and base damage
+PASS: hero 0 Q retains the requested cooldown
+PASS: hero 1 Q uses its requested radius and base damage
+PASS: hero 1 Q retains the requested cooldown
+PASS: hero 2 Q uses its requested radius and base damage
+PASS: hero 2 Q retains the requested cooldown
+PASS: ranger firepower buff lasts eight seconds with sixteen-second cooldown
+PASS: ranger buff reduces the real automatic attack interval by forty percent
+PASS: ranger buff expires after eight seconds of active battle
+PASS: oracle E reaches radius ten and preserves damage and slow
+PASS: dragon cut instantly clears the forward lane including a boss, leaving side and rear enemies
+PASS: dragon cut combines dragon-shaped energy and the dedicated overhead slash
+PASS: third skill cooldown is twenty seconds and dragon kills cannot bypass stage clearance
+PASS: third skill cannot bypass its cooldown or reward dead enemies twice
+PASS: meteor skill visibly falls before applying damage
+PASS: meteor damage waits for landing
+PASS: meteor landing deals 180 once in radius ten at the marked cast location
+PASS: four-direction frost starts with visible projectiles before impact
+PASS: four-direction frost deals 200 total per covered target without quadrupling centre damage
+PASS: frost arrows respect four narrow lanes and radius six
+PASS: frost barrage ends after three seconds and twelve pulses
+PASS: pause freezes channel time, pending impacts and third-skill cooldown
+PASS: upgrade selection also freezes sustained third skills
+PASS: new stage refreshes the third skill and clears old channels, falling fireballs and impacts
+PASS: W remains movement and cannot accidentally fire the third skill
+PASS: F keyboard input triggers the third skill
+PASS: third on-screen skill button triggers the actual skill
+PASS: skill-refresh upgrade also refreshes the third slot
+PASS: third skill remains unavailable before twenty active seconds
+PASS: third skill becomes ready after twenty active seconds
+PASS: hero 1 third skill receives retained damage upgrades
+PASS: hero 2 third skill receives retained damage upgrades
+PASS: restart resets third skills, channels and additional armour
 SMOKE TEST COMPLETE
 
 PASS: ZIP CRC, Info.plist, x86_64 + arm64, signature presence, executable permission
@@ -562,6 +683,127 @@ PASS: switching views transitions smoothly rather than teleporting
 PASS: paused battles ignore camera controls
 PASS: restart preserves view choice and recenters safely
 PASS: on-screen view button switches mode and updates its label
+PASS: easy stage 0 enemy 0 reduces all three stats by 20 percent
+PASS: hard stage 0 enemy 0 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 0 enemy 1 reduces all three stats by 20 percent
+PASS: hard stage 0 enemy 1 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 0 enemy 2 reduces all three stats by 20 percent
+PASS: hard stage 0 enemy 2 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 0 enemy 3 reduces all three stats by 20 percent
+PASS: hard stage 0 enemy 3 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 0 enemy 4 reduces all three stats by 20 percent
+PASS: hard stage 0 enemy 4 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 1 enemy 0 reduces all three stats by 20 percent
+PASS: hard stage 1 enemy 0 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 1 enemy 1 reduces all three stats by 20 percent
+PASS: hard stage 1 enemy 1 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 1 enemy 2 reduces all three stats by 20 percent
+PASS: hard stage 1 enemy 2 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 1 enemy 3 reduces all three stats by 20 percent
+PASS: hard stage 1 enemy 3 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 1 enemy 4 reduces all three stats by 20 percent
+PASS: hard stage 1 enemy 4 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 2 enemy 0 reduces all three stats by 20 percent
+PASS: hard stage 2 enemy 0 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 2 enemy 1 reduces all three stats by 20 percent
+PASS: hard stage 2 enemy 1 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 2 enemy 2 reduces all three stats by 20 percent
+PASS: hard stage 2 enemy 2 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 2 enemy 3 reduces all three stats by 20 percent
+PASS: hard stage 2 enemy 3 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 2 enemy 4 reduces all three stats by 20 percent
+PASS: hard stage 2 enemy 4 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: difficulty 0 is used by real spawned enemies
+PASS: difficulty 0 remains selected after returning to hero selection
+PASS: difficulty 1 is used by real spawned enemies
+PASS: difficulty 1 remains selected after returning to hero selection
+PASS: difficulty 2 is used by real spawned enemies
+PASS: difficulty 2 remains selected after returning to hero selection
+PASS: difficulty 0 stage 0 changes actual enemy movement
+PASS: difficulty 0 stage 0 changes actual enemy attack damage
+PASS: difficulty 0 stage 1 changes actual enemy movement
+PASS: difficulty 0 stage 1 changes actual enemy attack damage
+PASS: difficulty 0 stage 2 changes actual enemy movement
+PASS: difficulty 0 stage 2 changes actual enemy attack damage
+PASS: difficulty 1 stage 0 changes actual enemy movement
+PASS: difficulty 1 stage 0 changes actual enemy attack damage
+PASS: difficulty 1 stage 1 changes actual enemy movement
+PASS: difficulty 1 stage 1 changes actual enemy attack damage
+PASS: difficulty 1 stage 2 changes actual enemy movement
+PASS: difficulty 1 stage 2 changes actual enemy attack damage
+PASS: difficulty 2 stage 0 changes actual enemy movement
+PASS: difficulty 2 stage 0 changes actual enemy attack damage
+PASS: difficulty 2 stage 1 changes actual enemy movement
+PASS: difficulty 2 stage 1 changes actual enemy attack damage
+PASS: difficulty 2 stage 2 changes actual enemy movement
+PASS: difficulty 2 stage 2 changes actual enemy attack damage
+PASS: difficulty selector controls the next run including bosses
+PASS: hero 0 uses the requested stage 0 base health
+PASS: hero 0 uses the requested stage 1 base health
+PASS: hero 0 uses the requested stage 2 base health
+PASS: hero 0 stage 0 adds retained armour to stage base health
+PASS: hero 0 stage 1 adds retained armour to stage base health
+PASS: hero 0 stage 2 adds retained armour to stage base health
+PASS: hero 1 uses the requested stage 0 base health
+PASS: hero 1 uses the requested stage 1 base health
+PASS: hero 1 uses the requested stage 2 base health
+PASS: hero 1 stage 0 adds retained armour to stage base health
+PASS: hero 1 stage 1 adds retained armour to stage base health
+PASS: hero 1 stage 2 adds retained armour to stage base health
+PASS: hero 2 uses the requested stage 0 base health
+PASS: hero 2 uses the requested stage 1 base health
+PASS: hero 2 uses the requested stage 2 base health
+PASS: hero 2 stage 0 adds retained armour to stage base health
+PASS: hero 2 stage 1 adds retained armour to stage base health
+PASS: hero 2 stage 2 adds retained armour to stage base health
+PASS: hero 0 Q uses its requested radius and base damage
+PASS: hero 0 Q retains the requested cooldown
+PASS: hero 1 Q uses its requested radius and base damage
+PASS: hero 1 Q retains the requested cooldown
+PASS: hero 2 Q uses its requested radius and base damage
+PASS: hero 2 Q retains the requested cooldown
+PASS: ranger firepower buff lasts eight seconds with sixteen-second cooldown
+PASS: ranger buff reduces the real automatic attack interval by forty percent
+PASS: ranger buff expires after eight seconds of active battle
+PASS: oracle E reaches radius ten and preserves damage and slow
+PASS: dragon cut instantly clears the forward lane including a boss, leaving side and rear enemies
+PASS: dragon cut combines dragon-shaped energy and the dedicated overhead slash
+PASS: third skill cooldown is twenty seconds and dragon kills cannot bypass stage clearance
+PASS: third skill cannot bypass its cooldown or reward dead enemies twice
+PASS: meteor skill visibly falls before applying damage
+PASS: meteor damage waits for landing
+PASS: meteor landing deals 180 once in radius ten at the marked cast location
+PASS: four-direction frost starts with visible projectiles before impact
+PASS: four-direction frost deals 200 total per covered target without quadrupling centre damage
+PASS: frost arrows respect four narrow lanes and radius six
+PASS: frost barrage ends after three seconds and twelve pulses
+PASS: pause freezes channel time, pending impacts and third-skill cooldown
+PASS: upgrade selection also freezes sustained third skills
+PASS: new stage refreshes the third skill and clears old channels, falling fireballs and impacts
+PASS: W remains movement and cannot accidentally fire the third skill
+PASS: F keyboard input triggers the third skill
+PASS: third on-screen skill button triggers the actual skill
+PASS: skill-refresh upgrade also refreshes the third slot
+PASS: third skill remains unavailable before twenty active seconds
+PASS: third skill becomes ready after twenty active seconds
+PASS: hero 1 third skill receives retained damage upgrades
+PASS: hero 2 third skill receives retained damage upgrades
+PASS: restart resets third skills, channels and additional armour
 SMOKE TEST COMPLETE
 
 ALL CHECKS PASSED

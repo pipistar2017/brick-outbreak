@@ -20,3 +20,6 @@ dist/*
 !dist/campaign-demo.mp4
 !dist/intermission.png
 !dist/victory.png
+!dist/ultimate-*.png
+!dist/ultimate-demo.mp4
+!dist/difficulty.png
