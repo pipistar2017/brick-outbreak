@@ -111,6 +111,31 @@ PASS: acid projectile visibly launches from the zombie mouth
 PASS: mouth-launched acid reaches and damages the player once
 PASS: zombie bestiary previews all five actual enemy models
 PASS: zombie bestiary drag rotates the 3D model
+PASS: top view uses an orthographic camera
+PASS: oblique view uses perspective
+PASS: third-person view is closer to the hero
+PASS: view cycling wraps across three modes
+PASS: number keys select battle views
+PASS: V cycles the battle view
+PASS: right drag orbits the battle camera
+PASS: right release stops camera orbit
+PASS: mouse wheel zooms the active view
+PASS: zoom stays within safe limits in every mode
+PASS: camera pitch and yaw remain bounded
+PASS: R restores the active camera preset
+PASS: WASD follows the displayed camera heading
+PASS: diagonal camera-relative movement has no speed boost
+PASS: automatic attack facing cannot spin the camera
+PASS: enemy between camera and hero becomes translucent
+PASS: occlusion fade leaves other horde instances opaque
+PASS: hit flash cannot make a faded blocker opaque
+PASS: leaving occlusion restores original material and hit feedback
+PASS: enemy health bars face every battle camera
+PASS: camera remains inside arena walls and lifts at map corners
+PASS: switching views transitions smoothly rather than teleporting
+PASS: paused battles ignore camera controls
+PASS: restart preserves view choice and recenters safely
+PASS: on-screen view button switches mode and updates its label
 SMOKE TEST COMPLETE
 
 PASS: ZIP CRC, Info.plist, x86_64 + arm64, signature presence, executable permission
@@ -228,6 +253,31 @@ PASS: acid projectile visibly launches from the zombie mouth
 PASS: mouth-launched acid reaches and damages the player once
 PASS: zombie bestiary previews all five actual enemy models
 PASS: zombie bestiary drag rotates the 3D model
+PASS: top view uses an orthographic camera
+PASS: oblique view uses perspective
+PASS: third-person view is closer to the hero
+PASS: view cycling wraps across three modes
+PASS: number keys select battle views
+PASS: V cycles the battle view
+PASS: right drag orbits the battle camera
+PASS: right release stops camera orbit
+PASS: mouse wheel zooms the active view
+PASS: zoom stays within safe limits in every mode
+PASS: camera pitch and yaw remain bounded
+PASS: R restores the active camera preset
+PASS: WASD follows the displayed camera heading
+PASS: diagonal camera-relative movement has no speed boost
+PASS: automatic attack facing cannot spin the camera
+PASS: enemy between camera and hero becomes translucent
+PASS: occlusion fade leaves other horde instances opaque
+PASS: hit flash cannot make a faded blocker opaque
+PASS: leaving occlusion restores original material and hit feedback
+PASS: enemy health bars face every battle camera
+PASS: camera remains inside arena walls and lifts at map corners
+PASS: switching views transitions smoothly rather than teleporting
+PASS: paused battles ignore camera controls
+PASS: restart preserves view choice and recenters safely
+PASS: on-screen view button switches mode and updates its label
 SMOKE TEST COMPLETE
 
 ALL CHECKS PASSED

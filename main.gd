@@ -3,6 +3,7 @@ extends Node3D
 const HeroVisual = preload("res://hero_model.gd")
 const CombatFX = preload("res://combat_fx.gd")
 const ZombieVisual = preload("res://zombie_model.gd")
+const BattleCamera = preload("res://battle_camera.gd")
 
 const HEROES = [
 	{"name":"青龙战将", "role":"近战横扫 · 220 血量 · 普攻 30", "hp":220.0,"damage":30.0,"rate":0.8,"color":Color("21c78b"),"q":6.0,"e":14.0},
@@ -31,6 +32,14 @@ var demo_tick := 0
 var combat_demo := false
 var world: Node3D
 var player: Node3D
+var view_rig: RefCounted
+var view_button: Button
+var view_hint: Label
+var view_controls: Array = []
+var view_drag := false
+var camera_preview := -1
+var camera_demo := false
+var camera_tick := 0
 var camera: Camera3D
 var ui: CanvasLayer
 var hud: Label
@@ -127,12 +136,10 @@ func _ready() -> void:
 		box(world,pos,Vector3(1.5,1.2,1.5),Color("4b596b"))
 		box(world,pos+Vector3(0,0.85,0),Vector3(0.5,0.5,0.5),Color("c2a261"))
 	camera = Camera3D.new()
-	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = 22
 	add_child(camera)
-	camera.position = Vector3(0,24,20)
-	camera.look_at(Vector3.ZERO)
 	camera.current = true
+	view_rig = BattleCamera.new(camera)
+	view_rig.set_mode(0,Vector3.ZERO,true)
 	var theme := Theme.new()
 	theme.default_font = load("res://assets/chinese.otf")
 	ThemeDB.fallback_font = theme.default_font
@@ -170,6 +177,24 @@ func _ready() -> void:
 		skill_button.pressed.connect(skill.bind(i))
 		ui.add_child(skill_button)
 		skill_buttons.append(skill_button)
+	view_button = Button.new()
+	view_button.position = Vector2(880,22)
+	view_button.size = Vector2(260,48)
+	view_button.focus_mode = Control.FOCUS_NONE
+	view_button.add_theme_font_size_override("font_size",18)
+	view_button.pressed.connect(cycle_view)
+	ui.add_child(view_button)
+	var reset_button := Button.new()
+	reset_button.text = "R 复位"
+	reset_button.position = Vector2(1155,22)
+	reset_button.size = Vector2(105,48)
+	reset_button.focus_mode = Control.FOCUS_NONE
+	reset_button.pressed.connect(reset_view)
+	ui.add_child(reset_button)
+	view_hint = label(ui,"1 俯视 / 2 斜视 / 3 跟随\n右键拖动旋转 · 滚轮缩放",Vector2(885,80),15)
+	view_hint.add_theme_constant_override("outline_size",4)
+	view_controls = [view_button,reset_button,view_hint]
+	update_view_ui()
 	var gen := AudioStreamGenerator.new()
 	gen.mix_rate = 22050
 	gen.buffer_length = 0.12
@@ -213,6 +238,12 @@ func _ready() -> void:
 			for model in portrait_rigs:
 				model.rotation.y = PI
 	combat_demo = "--combat-demo" in OS.get_cmdline_user_args()
+	camera_demo = "--camera-demo" in OS.get_cmdline_user_args()
+	for i in range(3):
+		if ("--camera-preview="+str(i)) in OS.get_cmdline_user_args():
+			camera_preview = i
+	if camera_preview>=0:
+		setup_camera_scene(camera_preview)
 	if auto_test:
 		start_game(0)
 
@@ -226,6 +257,9 @@ func label(parent: Node, text: String, pos: Vector2, size: int) -> Label:
 	return l
 
 func panel(title: String, subtitle: String) -> VBoxContainer:
+	view_drag = false
+	for control in view_controls:
+		control.hide()
 	portrait_rigs.clear()
 	if is_instance_valid(menu):
 		menu.queue_free()
@@ -304,7 +338,7 @@ func show_menu() -> void:
 		button(body,"选择出战",start_game.bind(i))
 		body.get_child(body.get_child_count()-1).custom_minimum_size = Vector2(352,50)
 	var tip := Label.new()
-	tip.text = "WASD / 方向键移动    Q / E 技能    空格闪避    Esc 暂停\n首领 02:30 出现 · 在 04:00 前击败它 · 自动攻击，升级三选一"
+	tip.text = "WASD / 方向键移动    Q / E 技能    空格闪避    Esc 暂停\n首领 02:30 出现 · 在 04:00 前击败它 · 自动攻击，升级三选一\n1/2/3 视角 · V 切换 · 右键旋转 · 滚轮缩放 · R 复位"
 	tip.add_theme_font_size_override("font_size",17)
 	col.add_child(tip)
 	var catalog := Button.new()
@@ -470,6 +504,10 @@ func start_game(index: int) -> void:
 	halo.material_override = HeroVisual.mat(HEROES[hero].color,false,true)
 	player.add_child(halo)
 	playing = true
+	direction = Vector3.FORWARD
+	view_drag = false
+	view_rig.recenter(player.position,true)
+	update_view_ui()
 
 func spawn_enemy(kind: int) -> Dictionary:
 	var data: Dictionary = ENEMIES[kind]
@@ -483,7 +521,17 @@ func spawn_enemy(kind: int) -> Dictionary:
 	node.position.x = clampf(node.position.x,-21,21)
 	node.position.z = clampf(node.position.z,-21,21)
 	world.add_child(node)
-	var health_bar := box(node,Vector3(0,node.health_height,0),Vector3(0.8,0.07,0.08),Color("e36b7e"))
+	var health_bar := MeshInstance3D.new()
+	var health_quad := QuadMesh.new()
+	health_quad.size = Vector2(0.8,0.09)
+	health_bar.mesh = health_quad
+	health_bar.position = Vector3(0,node.health_height,0)
+	var health_material := material(Color("e36b7e"))
+	health_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	health_material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	health_bar.material_override = health_material
+	health_bar.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	node.add_child(health_bar)
 	var e := {"node":node,"bar":health_bar,"kind":kind,"hp":data.hp,"cooldown":1.0,"slow":0.0,"flash":0.0}
 	enemies.append(e)
 	return e
@@ -638,6 +686,51 @@ func skill(which: int) -> void:
 	shake_strength = maxf(shake_strength,0.12 if which==0 else 0.18)
 	tone(180+hero*170+which*70)
 
+func update_view_ui() -> void:
+	view_button.text = "V · %s  %d/3" % [BattleCamera.NAMES[view_rig.mode],view_rig.mode+1]
+	for control in view_controls:
+		control.visible = playing and not choosing
+
+func set_view(index: int) -> void:
+	if not playing or choosing:
+		return
+	view_rig.set_mode(index,player.position)
+	update_view_ui()
+
+func cycle_view() -> void:
+	set_view(view_rig.mode+1)
+
+func reset_view() -> void:
+	if not playing or choosing:
+		return
+	view_rig.recenter(player.position)
+	update_view_ui()
+
+func update_camera_occlusion() -> void:
+	for e in enemies:
+		if not e.get("dead",false):
+			e.node.set_camera_occluded(view_rig.blocks_player(e.node.position,ENEMIES[e.kind].scale,player.position))
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_RIGHT and not event.pressed:
+		view_drag = false
+	if not playing or choosing:
+		view_drag = false
+		return
+	if event is InputEventMouseMotion and view_drag:
+		view_rig.orbit(event.relative)
+		get_viewport().set_input_as_handled()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not playing or choosing or not event is InputEventMouseButton:
+		return
+	if event.button_index==MOUSE_BUTTON_RIGHT and event.pressed:
+		view_drag = true
+		get_viewport().set_input_as_handled()
+	elif event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP,MOUSE_BUTTON_WHEEL_DOWN]:
+		view_rig.zoom(-1 if event.button_index==MOUSE_BUTTON_WHEEL_UP else 1)
+		get_viewport().set_input_as_handled()
+
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
@@ -652,6 +745,15 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			resume_game()
 		return
 	if not playing or choosing:
+		return
+	if event.keycode in [KEY_1,KEY_2,KEY_3]:
+		set_view(event.keycode-KEY_1)
+		return
+	if event.keycode==KEY_V:
+		cycle_view()
+		return
+	if event.keycode==KEY_R:
+		reset_view()
 		return
 	if event.keycode == KEY_Q:
 		skill(0)
@@ -668,6 +770,7 @@ func resume_game() -> void:
 		menu.queue_free()
 	paused = false
 	playing = true
+	update_view_ui()
 
 func upgrade(choice: int) -> void:
 	if choice == 0:
@@ -680,6 +783,7 @@ func upgrade(choice: int) -> void:
 		q_clock = 0
 		e_clock = 0
 	choosing = false
+	update_view_ui()
 	if is_instance_valid(menu):
 		menu.queue_free()
 
@@ -700,8 +804,43 @@ func demo_segment(index: int) -> void:
 		e.cooldown = 100
 	announce(HEROES[index].name+" · 普通攻击","自动锁定 · 观察出手、弹道与命中反馈",HEROES[index].color)
 
+func setup_camera_scene(index: int) -> void:
+	start_game(0)
+	spawn_clock = 100
+	attack_clock = 100
+	var positions := [Vector3(-3,0,-4),Vector3(-5,0,-7),Vector3(3,0,-5),Vector3(5,0,-8),Vector3(6,0,-7)]
+	for i in range(5):
+		var e := spawn_enemy(i)
+		e.node.position = positions[i]
+		e.cooldown = 100
+	view_rig.set_mode(index,player.position,true)
+	update_view_ui()
+
 func _process(delta: float) -> void:
 	delta = minf(delta,0.05)
+	if camera_demo:
+		var frame := camera_tick%180
+		if frame==0:
+			setup_camera_scene(camera_tick/180)
+			announce(BattleCamera.NAMES[view_rig.mode],"同一战场 · 镜头旋转与角色朝向独立",Color("d6edff"))
+		if frame==30:
+			attack_clock = 0
+		if frame==60:
+			skill(0)
+		if frame==110:
+			skill(1)
+		if frame>120:
+			view_rig.orbit(Vector2(2,0))
+		camera_tick += 1
+		if camera_tick>=540:
+			get_tree().quit()
+			return
+	if camera_preview>=0:
+		preview_frames += 1
+		if preview_frames==20:
+			get_viewport().get_texture().get_image().save_png("res://dist/view-%d.png" % camera_preview)
+			get_tree().quit()
+			return
 	if combat_demo:
 		var local_frame := demo_tick%180
 		if local_frame==0:
@@ -756,16 +895,16 @@ func step(delta: float) -> void:
 	invuln = maxf(0,invuln-delta)
 	dash_clock = maxf(0,dash_clock-delta)
 	buff = maxf(0,buff-delta)
-	var movement := Vector3(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),0,float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP)))
+	var axes := Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP)))
+	var movement: Vector3 = view_rig.movement_axis(axes)
 	player.animate(delta,movement.length()>0)
 	if movement.length()>0:
 		direction = movement.normalized()
-		player.position += direction*5.5*delta
+		player.position += movement*5.5*delta
 		player.rotation.y = atan2(-direction.x,-direction.z)
 	player.position.x = clampf(player.position.x,-21,21)
 	player.position.z = clampf(player.position.z,-21,21)
-	camera.position = player.position+Vector3(0,24,20)
-	camera.look_at(player.position)
+	view_rig.update(player.position,delta)
 	spawn_clock -= delta
 	if spawn_clock<=0 and enemies.size()<65:
 		spawn_clock = maxf(0.28,1.3-elapsed/160)
@@ -830,6 +969,8 @@ func step(delta: float) -> void:
 	fx.update(delta)
 	shake_strength = move_toward(shake_strength,0,delta*0.75)
 	camera.position += Vector3(sin(elapsed*71),sin(elapsed*53),0)*shake_strength
+	update_camera_occlusion()
+	update_view_ui()
 	banner_time = maxf(0,banner_time-delta)
 	banner.modulate.a = minf(1,banner_time*3)
 	banner_hint.modulate.a = banner.modulate.a
@@ -846,7 +987,7 @@ func step(delta: float) -> void:
 	for i in range(enemies.size()-1,-1,-1):
 		if enemies[i].get("dead",false):
 			enemies.remove_at(i)
-	if xp >= level*8 and playing and not auto_test and not preview and combat_preview<0 and not combat_demo:
+	if xp >= level*8 and playing and not auto_test and not preview and combat_preview<0 and not combat_demo and not camera_demo and camera_preview<0:
 		xp -= level*8
 		level += 1
 		choosing = true
@@ -875,6 +1016,114 @@ func check(condition: bool, description: String) -> void:
 		get_tree().quit(1)
 		assert(condition,description)
 	print("PASS: "+description)
+
+func camera_checks() -> void:
+	start_game(0)
+	view_rig.set_mode(0,player.position,true)
+	check(camera.projection==Camera3D.PROJECTION_ORTHOGONAL,"top view uses an orthographic camera")
+	view_rig.set_mode(1,player.position,true)
+	var oblique_distance := camera.position.distance_to(player.position)
+	check(camera.projection==Camera3D.PROJECTION_PERSPECTIVE,"oblique view uses perspective")
+	view_rig.set_mode(2,player.position,true)
+	check(camera.projection==Camera3D.PROJECTION_PERSPECTIVE and camera.position.distance_to(player.position)<oblique_distance,"third-person view is closer to the hero")
+	view_rig.set_mode(0,player.position,true)
+	for i in range(3):
+		cycle_view()
+	check(view_rig.mode==0,"view cycling wraps across three modes")
+	var key := InputEventKey.new()
+	key.pressed = true
+	key.keycode = KEY_2
+	_unhandled_key_input(key)
+	key.keycode = KEY_3
+	_unhandled_key_input(key)
+	check(view_rig.mode==2,"number keys select battle views")
+	key.keycode = KEY_V
+	_unhandled_key_input(key)
+	check(view_rig.mode==0,"V cycles the battle view")
+	var mouse := InputEventMouseButton.new()
+	mouse.button_index = MOUSE_BUTTON_RIGHT
+	mouse.pressed = true
+	_unhandled_input(mouse)
+	var motion := InputEventMouseMotion.new()
+	motion.relative = Vector2(80,-20)
+	_input(motion)
+	check(view_drag and absf(view_rig.yaw)>0.1,"right drag orbits the battle camera")
+	mouse.pressed = false
+	_input(mouse)
+	check(not view_drag,"right release stops camera orbit")
+	var zoom_before: float = view_rig.zoom_value
+	mouse.button_index = MOUSE_BUTTON_WHEEL_UP
+	mouse.pressed = true
+	_unhandled_input(mouse)
+	check(view_rig.zoom_value<zoom_before,"mouse wheel zooms the active view")
+	var bounded := true
+	for mode in range(3):
+		view_rig.set_mode(mode,player.position,true)
+		view_rig.zoom(1000)
+		bounded = bounded and view_rig.zoom_value==BattleCamera.MAX_ZOOM[mode]
+		view_rig.zoom(-1000)
+		bounded = bounded and view_rig.zoom_value==BattleCamera.MIN_ZOOM[mode]
+	check(bounded,"zoom stays within safe limits in every mode")
+	view_rig.orbit(Vector2(100000,100000))
+	var safe_pitch: bool = view_rig.pitch<=deg_to_rad(BattleCamera.MAX_PITCH[2])
+	view_rig.orbit(Vector2(-100000,-100000))
+	check(safe_pitch and view_rig.pitch>=deg_to_rad(BattleCamera.MIN_PITCH[2]) and absf(view_rig.yaw)<=PI,"camera pitch and yaw remain bounded")
+	key.keycode = KEY_R
+	_unhandled_key_input(key)
+	check(view_rig.yaw==0 and view_rig.zoom_value==BattleCamera.DEFAULT_ZOOM[2],"R restores the active camera preset")
+	view_rig.set_mode(1,player.position,true)
+	view_rig.yaw = PI/2
+	view_rig.update(player.position,0,true)
+	var forward: Vector3 = view_rig.movement_axis(Vector2(0,-1))
+	var right: Vector3 = view_rig.movement_axis(Vector2(1,0))
+	check(forward.dot(Vector3.LEFT)>0.99 and right.dot(Vector3.FORWARD)>0.99,"WASD follows the displayed camera heading")
+	check(is_equal_approx(view_rig.movement_axis(Vector2(1,-1)).length(),1),"diagonal camera-relative movement has no speed boost")
+	start_game(1)
+	view_rig.set_mode(2,player.position,true)
+	var yaw_before: float = view_rig.yaw
+	var eye_before := camera.position
+	var target := spawn_enemy(0)
+	target.node.position = Vector3(-5,0,-3)
+	perform_attack(target)
+	view_rig.update(player.position,0.1)
+	check(view_rig.yaw==yaw_before and camera.position.distance_to(eye_before)<0.001 and absf(player.rotation.y)>0.1,"automatic attack facing cannot spin the camera")
+	var blocker := spawn_enemy(0)
+	blocker.node.position = Vector3(0.3,0,3)
+	update_camera_occlusion()
+	check(blocker.node.camera_occluded and blocker.node.meshes[0].material_override.albedo_color.a<0.4,"enemy between camera and hero becomes translucent")
+	check(not target.node.camera_occluded and target.node.meshes[0].material_override.albedo_color.a==1,"occlusion fade leaves other horde instances opaque")
+	hurt(blocker,1)
+	check(blocker.node.meshes[0].material_overlay==null,"hit flash cannot make a faded blocker opaque")
+	view_rig.set_mode(0,player.position,true)
+	update_camera_occlusion()
+	check(not blocker.node.camera_occluded and blocker.node.meshes[0].material_override==blocker.node.base_materials[0] and blocker.node.meshes[0].material_overlay==white_flash,"leaving occlusion restores original material and hit feedback")
+	check(blocker.bar.material_override.billboard_mode==BaseMaterial3D.BILLBOARD_ENABLED,"enemy health bars face every battle camera")
+	var safe_edges := true
+	for pos in [Vector3(21,0,21),Vector3(-21,0,21),Vector3(21,0,-21),Vector3(-21,0,-21)]:
+		view_rig.set_mode(2,pos,true)
+		safe_edges = safe_edges and absf(camera.position.x)<=BattleCamera.ARENA_LIMIT+0.001 and absf(camera.position.z)<=BattleCamera.ARENA_LIMIT+0.001 and camera.position.y>3 and camera.position.distance_to(pos)>3
+	check(safe_edges,"camera remains inside arena walls and lifts at map corners")
+	view_rig.set_mode(0,player.position,true)
+	eye_before = camera.position
+	view_rig.set_mode(2,player.position)
+	var initially_still: bool = camera.position==eye_before
+	view_rig.update(player.position,0.016)
+	check(initially_still and camera.position.distance_to(eye_before)>0 and camera.position.distance_to(eye_before)<10,"switching views transitions smoothly rather than teleporting")
+	playing = false
+	zoom_before = view_rig.zoom_value
+	yaw_before = view_rig.yaw
+	view_drag = true
+	_input(motion)
+	_unhandled_input(mouse)
+	key.keycode = KEY_V
+	_unhandled_key_input(key)
+	check(not view_drag and view_rig.yaw==yaw_before and view_rig.zoom_value==zoom_before and view_rig.mode==2,"paused battles ignore camera controls")
+	playing = true
+	view_rig.yaw = 0.7
+	start_game(0)
+	check(view_rig.mode==2 and view_rig.yaw==0 and camera.position.distance_to(player.position)>3,"restart preserves view choice and recenters safely")
+	view_button.pressed.emit()
+	check(view_rig.mode==0 and view_button.text.contains(BattleCamera.NAMES[0]) and view_button.visible,"on-screen view button switches mode and updates its label")
 
 func zombie_checks() -> void:
 	start_game(0)
@@ -1128,5 +1377,6 @@ func run_smoke_test() -> void:
 	check(portrait.rotation.y>before_rotation+0.5,"drag rotates the actual 3D model")
 	combat_checks()
 	zombie_checks()
+	camera_checks()
 	print("SMOKE TEST COMPLETE")
 	get_tree().quit(0)

@@ -10,6 +10,7 @@ const PALETTES = [
 ]
 static var baked_cache: Dictionary = {}
 static var surface_cache: Dictionary = {}
+static var faded_cache: Dictionary = {}
 var identity := 0
 var variant := 0
 var p: Dictionary
@@ -23,6 +24,8 @@ var wrist_r: Node3D
 var leg_l: Node3D
 var leg_r: Node3D
 var meshes: Array[MeshInstance3D] = []
+var base_materials: Array[Material] = []
+var camera_occluded := false
 var details := 0
 var phase := 0.0
 var attack_time := 0.0
@@ -263,13 +266,33 @@ func bake(node: Node3D) -> void:
 		part.material_override = data.material
 		node.add_child(part)
 		meshes.append(part)
+		base_materials.append(data.material)
 
 func set_overlay(value: Material) -> void:
 	if value==current_overlay:
 		return
 	current_overlay = value
 	for part in meshes:
-		part.material_overlay = value
+		part.material_overlay = null if camera_occluded else value
+
+func set_camera_occluded(hidden: bool) -> void:
+	if camera_occluded==hidden:
+		return
+	camera_occluded = hidden
+	for i in range(meshes.size()):
+		var base: StandardMaterial3D = base_materials[i]
+		if hidden:
+			var id := base.get_instance_id()
+			if not faded_cache.has(id):
+				var faded := base.duplicate() as StandardMaterial3D
+				faded.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+				faded.albedo_color.a = 0.28
+				faded.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+				faded_cache[id] = faded
+			meshes[i].material_override = faded_cache[id]
+		else:
+			meshes[i].material_override = base
+		meshes[i].material_overlay = null if hidden else current_overlay
 
 func mouth_position() -> Vector3:
 	return head.to_global(Vector3(0,-0.14,-0.40))

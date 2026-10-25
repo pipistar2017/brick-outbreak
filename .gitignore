@@ -14,3 +14,5 @@ dist/*
 !dist/combat-demo.mp4
 !dist/zombies.png
 !dist/zombies-back.png
+!dist/view-*.png
+!dist/camera-demo.mp4
