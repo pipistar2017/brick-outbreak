@@ -1,11 +1,11 @@
 extends RefCounted
 ## Camera heading is independent from the hero's automatic attack facing.
 const NAMES = ["俯视战场","斜视战场","第三人称跟随"]
-const DEFAULT_PITCH = [50.2,36.0,18.0]
+const DEFAULT_PITCH = [50.2,25.0,18.0]
 const DEFAULT_ZOOM = [22.0,18.0,7.5]
 const MIN_ZOOM = [14.0,12.0,5.0]
 const MAX_ZOOM = [32.0,26.0,11.0]
-const MIN_PITCH = [45.0,25.0,10.0]
+const MIN_PITCH = [45.0,18.0,10.0]
 const MAX_PITCH = [78.0,58.0,38.0]
 const ARENA_LIMIT = 22.2
 var camera: Camera3D
@@ -77,7 +77,7 @@ func update(player_pos: Vector3, delta: float, snap := false) -> void:
 	var weight := 1.0 if snap else 1-exp(-delta*10)
 	focus = wanted_focus if snap else focus.lerp(wanted_focus,weight)
 	camera.position = eye if snap else camera.position.lerp(eye,weight)
-	var fov := 64.0 if mode==2 else 58.0
+	var fov := 64.0
 	camera.fov = fov if snap else lerpf(camera.fov,fov,weight)
 	camera.size = zoom_value if snap else lerpf(camera.size,zoom_value,weight)
 	if camera.position.distance_to(focus)>0.01:

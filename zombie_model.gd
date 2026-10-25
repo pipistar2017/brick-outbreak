@@ -11,6 +11,7 @@ const PALETTES = [
 static var baked_cache: Dictionary = {}
 static var surface_cache: Dictionary = {}
 static var faded_cache: Dictionary = {}
+var cache_namespace := "zombie"
 var identity := 0
 var variant := 0
 var p: Dictionary
@@ -242,7 +243,7 @@ func bake(node: Node3D) -> void:
 			bake(child)
 	if raw.is_empty():
 		return
-	var key := "%d/%d/%s" % [identity,variant,node.name]
+	var key := "%s/%d/%d/%s" % [cache_namespace,identity,variant,node.name]
 	if not baked_cache.has(key):
 		var groups: Dictionary = {}
 		for child in raw:

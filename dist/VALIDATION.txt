@@ -38,20 +38,20 @@ PASS: pause stops combat
 PASS: escape resumes combat
 PASS: experience opens upgrade selection
 PASS: upgrade resumes combat
-PASS: enemy 0 stats
-PASS: enemy 1 stats
-PASS: enemy 2 stats
-PASS: enemy 3 stats
-PASS: enemy 4 stats
+PASS: campaign enemy 0 stats
+PASS: campaign enemy 1 stats
+PASS: campaign enemy 2 stats
+PASS: campaign enemy 3 stats
+PASS: campaign enemy 4 stats
 PASS: damage and invulnerability
 PASS: damage upgrade
 PASS: health upgrade
-PASS: boss victory
+PASS: boss kill alone cannot bypass the campaign
 PASS: defeat
 PASS: restart resets state
-PASS: 60 second simulation
-PASS: timed boss arrival
-PASS: deadline ends run
+PASS: 60 second finite-wave simulation
+PASS: elapsed time cannot skip waves or spawn an early boss
+PASS: campaign has no former four-minute survival deadline
 PASS: three distinct live 3D previews
 PASS: drag rotates the actual 3D model
 PASS: melee begins with a visible windup
@@ -84,33 +84,175 @@ PASS: pause freezes effects and projectile flight
 PASS: restart removes old projectiles and effects
 PASS: effect population remains bounded
 PASS: expired FX are released
-PASS: enemy 0 uses its articulated zombie appearance
-PASS: enemy 0 limp and open-jaw attack animate
-PASS: enemy 0 nested meshes retain flash and freeze feedback
-PASS: enemy 0 health bar remains above the head
-PASS: enemy 1 uses its articulated zombie appearance
-PASS: enemy 1 limp and open-jaw attack animate
-PASS: enemy 1 nested meshes retain flash and freeze feedback
-PASS: enemy 1 health bar remains above the head
-PASS: enemy 2 uses its articulated zombie appearance
-PASS: enemy 2 limp and open-jaw attack animate
-PASS: enemy 2 nested meshes retain flash and freeze feedback
-PASS: enemy 2 health bar remains above the head
-PASS: enemy 3 uses its articulated zombie appearance
-PASS: enemy 3 limp and open-jaw attack animate
-PASS: enemy 3 nested meshes retain flash and freeze feedback
-PASS: enemy 3 health bar remains above the head
-PASS: enemy 4 uses its articulated zombie appearance
-PASS: enemy 4 limp and open-jaw attack animate
-PASS: enemy 4 nested meshes retain flash and freeze feedback
-PASS: enemy 4 health bar remains above the head
-PASS: zombie details are merged into a bounded mesh budget
-PASS: horde instances share baked geometry
-PASS: frozen zombie gait matches half movement speed
-PASS: acid projectile visibly launches from the zombie mouth
-PASS: mouth-launched acid reaches and damages the player once
-PASS: zombie bestiary previews all five actual enemy models
-PASS: zombie bestiary drag rotates the 3D model
+PASS: stage 0 enemy 0 uses its themed articulated model
+PASS: stage 0 enemy 0 has moving legs and an attack action
+PASS: stage 0 enemy 0 retains hit and frost feedback
+PASS: stage 0 enemy 0 health bar clears its head
+PASS: stage 0 enemy 0 fades and restores its own materials
+PASS: stage 0 enemy 0 shares baked geometry within its type
+PASS: infected animal 0 has four legs and a tail instead of human arms
+PASS: stage 0 enemy 1 uses its themed articulated model
+PASS: stage 0 enemy 1 has moving legs and an attack action
+PASS: stage 0 enemy 1 retains hit and frost feedback
+PASS: stage 0 enemy 1 health bar clears its head
+PASS: stage 0 enemy 1 fades and restores its own materials
+PASS: stage 0 enemy 1 shares baked geometry within its type
+PASS: infected animal 1 has four legs and a tail instead of human arms
+PASS: stage 0 enemy 2 uses its themed articulated model
+PASS: stage 0 enemy 2 has moving legs and an attack action
+PASS: stage 0 enemy 2 retains hit and frost feedback
+PASS: stage 0 enemy 2 health bar clears its head
+PASS: stage 0 enemy 2 fades and restores its own materials
+PASS: stage 0 enemy 2 shares baked geometry within its type
+PASS: infected animal 2 has four legs and a tail instead of human arms
+PASS: stage 0 enemy 3 uses its themed articulated model
+PASS: stage 0 enemy 3 has moving legs and an attack action
+PASS: stage 0 enemy 3 retains hit and frost feedback
+PASS: stage 0 enemy 3 health bar clears its head
+PASS: stage 0 enemy 3 fades and restores its own materials
+PASS: stage 0 enemy 3 shares baked geometry within its type
+PASS: infected animal 3 has four legs and a tail instead of human arms
+PASS: stage 0 enemy 4 uses its themed articulated model
+PASS: stage 0 enemy 4 has moving legs and an attack action
+PASS: stage 0 enemy 4 retains hit and frost feedback
+PASS: stage 0 enemy 4 health bar clears its head
+PASS: stage 0 enemy 4 fades and restores its own materials
+PASS: stage 0 enemy 4 shares baked geometry within its type
+PASS: infected animal 4 has four legs and a tail instead of human arms
+PASS: stage 0 enemy render mesh count stays bounded
+PASS: stage 0 frost halves animation speed
+PASS: stage 0 ranged attack launches from its actual model
+PASS: stage 0 projectile reaches and damages the player once
+PASS: stage 0 bestiary uses all five actual battle models
+PASS: stage 0 bestiary supports model rotation
+PASS: stage 1 enemy 0 uses its themed articulated model
+PASS: stage 1 enemy 0 has moving legs and an attack action
+PASS: stage 1 enemy 0 retains hit and frost feedback
+PASS: stage 1 enemy 0 health bar clears its head
+PASS: stage 1 enemy 0 fades and restores its own materials
+PASS: stage 1 enemy 0 shares baked geometry within its type
+PASS: stage 1 enemy 1 uses its themed articulated model
+PASS: stage 1 enemy 1 has moving legs and an attack action
+PASS: stage 1 enemy 1 retains hit and frost feedback
+PASS: stage 1 enemy 1 health bar clears its head
+PASS: stage 1 enemy 1 fades and restores its own materials
+PASS: stage 1 enemy 1 shares baked geometry within its type
+PASS: stage 1 enemy 2 uses its themed articulated model
+PASS: stage 1 enemy 2 has moving legs and an attack action
+PASS: stage 1 enemy 2 retains hit and frost feedback
+PASS: stage 1 enemy 2 health bar clears its head
+PASS: stage 1 enemy 2 fades and restores its own materials
+PASS: stage 1 enemy 2 shares baked geometry within its type
+PASS: stage 1 enemy 3 uses its themed articulated model
+PASS: stage 1 enemy 3 has moving legs and an attack action
+PASS: stage 1 enemy 3 retains hit and frost feedback
+PASS: stage 1 enemy 3 health bar clears its head
+PASS: stage 1 enemy 3 fades and restores its own materials
+PASS: stage 1 enemy 3 shares baked geometry within its type
+PASS: stage 1 enemy 4 uses its themed articulated model
+PASS: stage 1 enemy 4 has moving legs and an attack action
+PASS: stage 1 enemy 4 retains hit and frost feedback
+PASS: stage 1 enemy 4 health bar clears its head
+PASS: stage 1 enemy 4 fades and restores its own materials
+PASS: stage 1 enemy 4 shares baked geometry within its type
+PASS: stage 1 enemy render mesh count stays bounded
+PASS: stage 1 frost halves animation speed
+PASS: stage 1 ranged attack launches from its actual model
+PASS: stage 1 projectile reaches and damages the player once
+PASS: stage 1 bestiary uses all five actual battle models
+PASS: stage 1 bestiary supports model rotation
+PASS: stage 2 enemy 0 uses its themed articulated model
+PASS: stage 2 enemy 0 has moving legs and an attack action
+PASS: stage 2 enemy 0 retains hit and frost feedback
+PASS: stage 2 enemy 0 health bar clears its head
+PASS: stage 2 enemy 0 fades and restores its own materials
+PASS: stage 2 enemy 0 shares baked geometry within its type
+PASS: stage 2 enemy 1 uses its themed articulated model
+PASS: stage 2 enemy 1 has moving legs and an attack action
+PASS: stage 2 enemy 1 retains hit and frost feedback
+PASS: stage 2 enemy 1 health bar clears its head
+PASS: stage 2 enemy 1 fades and restores its own materials
+PASS: stage 2 enemy 1 shares baked geometry within its type
+PASS: stage 2 enemy 2 uses its themed articulated model
+PASS: stage 2 enemy 2 has moving legs and an attack action
+PASS: stage 2 enemy 2 retains hit and frost feedback
+PASS: stage 2 enemy 2 health bar clears its head
+PASS: stage 2 enemy 2 fades and restores its own materials
+PASS: stage 2 enemy 2 shares baked geometry within its type
+PASS: stage 2 enemy 3 uses its themed articulated model
+PASS: stage 2 enemy 3 has moving legs and an attack action
+PASS: stage 2 enemy 3 retains hit and frost feedback
+PASS: stage 2 enemy 3 health bar clears its head
+PASS: stage 2 enemy 3 fades and restores its own materials
+PASS: stage 2 enemy 3 shares baked geometry within its type
+PASS: stage 2 enemy 4 uses its themed articulated model
+PASS: stage 2 enemy 4 has moving legs and an attack action
+PASS: stage 2 enemy 4 retains hit and frost feedback
+PASS: stage 2 enemy 4 health bar clears its head
+PASS: stage 2 enemy 4 fades and restores its own materials
+PASS: stage 2 enemy 4 shares baked geometry within its type
+PASS: stage 2 enemy render mesh count stays bounded
+PASS: stage 2 frost halves animation speed
+PASS: stage 2 ranged attack launches from its actual model
+PASS: stage 2 projectile reaches and damages the player once
+PASS: stage 2 bestiary uses all five actual battle models
+PASS: stage 2 bestiary supports model rotation
+PASS: campaign builds three distinct environment roots
+PASS: shared mesh cache cannot mix different campaign themes
+PASS: stage 0 begins in the required campaign order
+PASS: stage 0 shows only its map and themed landmarks
+PASS: stage 0 wave 0 spawns its exact finite quota
+PASS: stage 0 wave 0 cannot endlessly respawn
+PASS: stage 0 advances to wave 1 only after clearing enemies
+PASS: stage 0 wave 1 spawns its exact finite quota
+PASS: stage 0 wave 1 cannot endlessly respawn
+PASS: stage 0 advances to wave 2 only after clearing enemies
+PASS: stage 0 wave 2 spawns its exact finite quota
+PASS: stage 0 wave 2 cannot endlessly respawn
+PASS: stage 0 boss arrives only in the final wave
+PASS: stage 0 boss death cannot ignore surviving enemies
+PASS: stage 0 completes its full required enemy count
+PASS: stage 0 opens the intermission upgrade instead of final victory
+PASS: intermission freezes battle and waits for an upgrade
+PASS: stage transition fully heals and refreshes skills
+PASS: stage transition preserves hero progress and upgrades
+PASS: stage transition removes previous enemies, projectiles and effects
+PASS: new stage resets local objectives and safely positions the hero
+PASS: stage 1 begins in the required campaign order
+PASS: stage 1 shows only its map and themed landmarks
+PASS: stage 1 wave 0 spawns its exact finite quota
+PASS: stage 1 wave 0 cannot endlessly respawn
+PASS: stage 1 advances to wave 1 only after clearing enemies
+PASS: stage 1 wave 1 spawns its exact finite quota
+PASS: stage 1 wave 1 cannot endlessly respawn
+PASS: stage 1 advances to wave 2 only after clearing enemies
+PASS: stage 1 wave 2 spawns its exact finite quota
+PASS: stage 1 wave 2 cannot endlessly respawn
+PASS: stage 1 boss arrives only in the final wave
+PASS: stage 1 boss death cannot ignore surviving enemies
+PASS: stage 1 completes its full required enemy count
+PASS: stage 1 opens the intermission upgrade instead of final victory
+PASS: intermission freezes battle and waits for an upgrade
+PASS: stage transition fully heals and refreshes skills
+PASS: stage transition preserves hero progress and upgrades
+PASS: stage transition removes previous enemies, projectiles and effects
+PASS: new stage resets local objectives and safely positions the hero
+PASS: stage 2 begins in the required campaign order
+PASS: stage 2 shows only its map and themed landmarks
+PASS: stage 2 wave 0 spawns its exact finite quota
+PASS: stage 2 wave 0 cannot endlessly respawn
+PASS: stage 2 advances to wave 1 only after clearing enemies
+PASS: stage 2 wave 1 spawns its exact finite quota
+PASS: stage 2 wave 1 cannot endlessly respawn
+PASS: stage 2 advances to wave 2 only after clearing enemies
+PASS: stage 2 wave 2 spawns its exact finite quota
+PASS: stage 2 wave 2 cannot endlessly respawn
+PASS: stage 2 boss arrives only in the final wave
+PASS: stage 2 boss death cannot ignore surviving enemies
+PASS: stage 2 completes its full required enemy count
+PASS: all 84 enemies across three cleared stages produce the final victory
+PASS: restart returns to the savanna and clears campaign progress
+PASS: pause freezes campaign spawn timers and quotas
 PASS: top view uses an orthographic camera
 PASS: oblique view uses perspective
 PASS: third-person view is closer to the hero
@@ -180,20 +322,20 @@ PASS: pause stops combat
 PASS: escape resumes combat
 PASS: experience opens upgrade selection
 PASS: upgrade resumes combat
-PASS: enemy 0 stats
-PASS: enemy 1 stats
-PASS: enemy 2 stats
-PASS: enemy 3 stats
-PASS: enemy 4 stats
+PASS: campaign enemy 0 stats
+PASS: campaign enemy 1 stats
+PASS: campaign enemy 2 stats
+PASS: campaign enemy 3 stats
+PASS: campaign enemy 4 stats
 PASS: damage and invulnerability
 PASS: damage upgrade
 PASS: health upgrade
-PASS: boss victory
+PASS: boss kill alone cannot bypass the campaign
 PASS: defeat
 PASS: restart resets state
-PASS: 60 second simulation
-PASS: timed boss arrival
-PASS: deadline ends run
+PASS: 60 second finite-wave simulation
+PASS: elapsed time cannot skip waves or spawn an early boss
+PASS: campaign has no former four-minute survival deadline
 PASS: three distinct live 3D previews
 PASS: drag rotates the actual 3D model
 PASS: melee begins with a visible windup
@@ -226,33 +368,175 @@ PASS: pause freezes effects and projectile flight
 PASS: restart removes old projectiles and effects
 PASS: effect population remains bounded
 PASS: expired FX are released
-PASS: enemy 0 uses its articulated zombie appearance
-PASS: enemy 0 limp and open-jaw attack animate
-PASS: enemy 0 nested meshes retain flash and freeze feedback
-PASS: enemy 0 health bar remains above the head
-PASS: enemy 1 uses its articulated zombie appearance
-PASS: enemy 1 limp and open-jaw attack animate
-PASS: enemy 1 nested meshes retain flash and freeze feedback
-PASS: enemy 1 health bar remains above the head
-PASS: enemy 2 uses its articulated zombie appearance
-PASS: enemy 2 limp and open-jaw attack animate
-PASS: enemy 2 nested meshes retain flash and freeze feedback
-PASS: enemy 2 health bar remains above the head
-PASS: enemy 3 uses its articulated zombie appearance
-PASS: enemy 3 limp and open-jaw attack animate
-PASS: enemy 3 nested meshes retain flash and freeze feedback
-PASS: enemy 3 health bar remains above the head
-PASS: enemy 4 uses its articulated zombie appearance
-PASS: enemy 4 limp and open-jaw attack animate
-PASS: enemy 4 nested meshes retain flash and freeze feedback
-PASS: enemy 4 health bar remains above the head
-PASS: zombie details are merged into a bounded mesh budget
-PASS: horde instances share baked geometry
-PASS: frozen zombie gait matches half movement speed
-PASS: acid projectile visibly launches from the zombie mouth
-PASS: mouth-launched acid reaches and damages the player once
-PASS: zombie bestiary previews all five actual enemy models
-PASS: zombie bestiary drag rotates the 3D model
+PASS: stage 0 enemy 0 uses its themed articulated model
+PASS: stage 0 enemy 0 has moving legs and an attack action
+PASS: stage 0 enemy 0 retains hit and frost feedback
+PASS: stage 0 enemy 0 health bar clears its head
+PASS: stage 0 enemy 0 fades and restores its own materials
+PASS: stage 0 enemy 0 shares baked geometry within its type
+PASS: infected animal 0 has four legs and a tail instead of human arms
+PASS: stage 0 enemy 1 uses its themed articulated model
+PASS: stage 0 enemy 1 has moving legs and an attack action
+PASS: stage 0 enemy 1 retains hit and frost feedback
+PASS: stage 0 enemy 1 health bar clears its head
+PASS: stage 0 enemy 1 fades and restores its own materials
+PASS: stage 0 enemy 1 shares baked geometry within its type
+PASS: infected animal 1 has four legs and a tail instead of human arms
+PASS: stage 0 enemy 2 uses its themed articulated model
+PASS: stage 0 enemy 2 has moving legs and an attack action
+PASS: stage 0 enemy 2 retains hit and frost feedback
+PASS: stage 0 enemy 2 health bar clears its head
+PASS: stage 0 enemy 2 fades and restores its own materials
+PASS: stage 0 enemy 2 shares baked geometry within its type
+PASS: infected animal 2 has four legs and a tail instead of human arms
+PASS: stage 0 enemy 3 uses its themed articulated model
+PASS: stage 0 enemy 3 has moving legs and an attack action
+PASS: stage 0 enemy 3 retains hit and frost feedback
+PASS: stage 0 enemy 3 health bar clears its head
+PASS: stage 0 enemy 3 fades and restores its own materials
+PASS: stage 0 enemy 3 shares baked geometry within its type
+PASS: infected animal 3 has four legs and a tail instead of human arms
+PASS: stage 0 enemy 4 uses its themed articulated model
+PASS: stage 0 enemy 4 has moving legs and an attack action
+PASS: stage 0 enemy 4 retains hit and frost feedback
+PASS: stage 0 enemy 4 health bar clears its head
+PASS: stage 0 enemy 4 fades and restores its own materials
+PASS: stage 0 enemy 4 shares baked geometry within its type
+PASS: infected animal 4 has four legs and a tail instead of human arms
+PASS: stage 0 enemy render mesh count stays bounded
+PASS: stage 0 frost halves animation speed
+PASS: stage 0 ranged attack launches from its actual model
+PASS: stage 0 projectile reaches and damages the player once
+PASS: stage 0 bestiary uses all five actual battle models
+PASS: stage 0 bestiary supports model rotation
+PASS: stage 1 enemy 0 uses its themed articulated model
+PASS: stage 1 enemy 0 has moving legs and an attack action
+PASS: stage 1 enemy 0 retains hit and frost feedback
+PASS: stage 1 enemy 0 health bar clears its head
+PASS: stage 1 enemy 0 fades and restores its own materials
+PASS: stage 1 enemy 0 shares baked geometry within its type
+PASS: stage 1 enemy 1 uses its themed articulated model
+PASS: stage 1 enemy 1 has moving legs and an attack action
+PASS: stage 1 enemy 1 retains hit and frost feedback
+PASS: stage 1 enemy 1 health bar clears its head
+PASS: stage 1 enemy 1 fades and restores its own materials
+PASS: stage 1 enemy 1 shares baked geometry within its type
+PASS: stage 1 enemy 2 uses its themed articulated model
+PASS: stage 1 enemy 2 has moving legs and an attack action
+PASS: stage 1 enemy 2 retains hit and frost feedback
+PASS: stage 1 enemy 2 health bar clears its head
+PASS: stage 1 enemy 2 fades and restores its own materials
+PASS: stage 1 enemy 2 shares baked geometry within its type
+PASS: stage 1 enemy 3 uses its themed articulated model
+PASS: stage 1 enemy 3 has moving legs and an attack action
+PASS: stage 1 enemy 3 retains hit and frost feedback
+PASS: stage 1 enemy 3 health bar clears its head
+PASS: stage 1 enemy 3 fades and restores its own materials
+PASS: stage 1 enemy 3 shares baked geometry within its type
+PASS: stage 1 enemy 4 uses its themed articulated model
+PASS: stage 1 enemy 4 has moving legs and an attack action
+PASS: stage 1 enemy 4 retains hit and frost feedback
+PASS: stage 1 enemy 4 health bar clears its head
+PASS: stage 1 enemy 4 fades and restores its own materials
+PASS: stage 1 enemy 4 shares baked geometry within its type
+PASS: stage 1 enemy render mesh count stays bounded
+PASS: stage 1 frost halves animation speed
+PASS: stage 1 ranged attack launches from its actual model
+PASS: stage 1 projectile reaches and damages the player once
+PASS: stage 1 bestiary uses all five actual battle models
+PASS: stage 1 bestiary supports model rotation
+PASS: stage 2 enemy 0 uses its themed articulated model
+PASS: stage 2 enemy 0 has moving legs and an attack action
+PASS: stage 2 enemy 0 retains hit and frost feedback
+PASS: stage 2 enemy 0 health bar clears its head
+PASS: stage 2 enemy 0 fades and restores its own materials
+PASS: stage 2 enemy 0 shares baked geometry within its type
+PASS: stage 2 enemy 1 uses its themed articulated model
+PASS: stage 2 enemy 1 has moving legs and an attack action
+PASS: stage 2 enemy 1 retains hit and frost feedback
+PASS: stage 2 enemy 1 health bar clears its head
+PASS: stage 2 enemy 1 fades and restores its own materials
+PASS: stage 2 enemy 1 shares baked geometry within its type
+PASS: stage 2 enemy 2 uses its themed articulated model
+PASS: stage 2 enemy 2 has moving legs and an attack action
+PASS: stage 2 enemy 2 retains hit and frost feedback
+PASS: stage 2 enemy 2 health bar clears its head
+PASS: stage 2 enemy 2 fades and restores its own materials
+PASS: stage 2 enemy 2 shares baked geometry within its type
+PASS: stage 2 enemy 3 uses its themed articulated model
+PASS: stage 2 enemy 3 has moving legs and an attack action
+PASS: stage 2 enemy 3 retains hit and frost feedback
+PASS: stage 2 enemy 3 health bar clears its head
+PASS: stage 2 enemy 3 fades and restores its own materials
+PASS: stage 2 enemy 3 shares baked geometry within its type
+PASS: stage 2 enemy 4 uses its themed articulated model
+PASS: stage 2 enemy 4 has moving legs and an attack action
+PASS: stage 2 enemy 4 retains hit and frost feedback
+PASS: stage 2 enemy 4 health bar clears its head
+PASS: stage 2 enemy 4 fades and restores its own materials
+PASS: stage 2 enemy 4 shares baked geometry within its type
+PASS: stage 2 enemy render mesh count stays bounded
+PASS: stage 2 frost halves animation speed
+PASS: stage 2 ranged attack launches from its actual model
+PASS: stage 2 projectile reaches and damages the player once
+PASS: stage 2 bestiary uses all five actual battle models
+PASS: stage 2 bestiary supports model rotation
+PASS: campaign builds three distinct environment roots
+PASS: shared mesh cache cannot mix different campaign themes
+PASS: stage 0 begins in the required campaign order
+PASS: stage 0 shows only its map and themed landmarks
+PASS: stage 0 wave 0 spawns its exact finite quota
+PASS: stage 0 wave 0 cannot endlessly respawn
+PASS: stage 0 advances to wave 1 only after clearing enemies
+PASS: stage 0 wave 1 spawns its exact finite quota
+PASS: stage 0 wave 1 cannot endlessly respawn
+PASS: stage 0 advances to wave 2 only after clearing enemies
+PASS: stage 0 wave 2 spawns its exact finite quota
+PASS: stage 0 wave 2 cannot endlessly respawn
+PASS: stage 0 boss arrives only in the final wave
+PASS: stage 0 boss death cannot ignore surviving enemies
+PASS: stage 0 completes its full required enemy count
+PASS: stage 0 opens the intermission upgrade instead of final victory
+PASS: intermission freezes battle and waits for an upgrade
+PASS: stage transition fully heals and refreshes skills
+PASS: stage transition preserves hero progress and upgrades
+PASS: stage transition removes previous enemies, projectiles and effects
+PASS: new stage resets local objectives and safely positions the hero
+PASS: stage 1 begins in the required campaign order
+PASS: stage 1 shows only its map and themed landmarks
+PASS: stage 1 wave 0 spawns its exact finite quota
+PASS: stage 1 wave 0 cannot endlessly respawn
+PASS: stage 1 advances to wave 1 only after clearing enemies
+PASS: stage 1 wave 1 spawns its exact finite quota
+PASS: stage 1 wave 1 cannot endlessly respawn
+PASS: stage 1 advances to wave 2 only after clearing enemies
+PASS: stage 1 wave 2 spawns its exact finite quota
+PASS: stage 1 wave 2 cannot endlessly respawn
+PASS: stage 1 boss arrives only in the final wave
+PASS: stage 1 boss death cannot ignore surviving enemies
+PASS: stage 1 completes its full required enemy count
+PASS: stage 1 opens the intermission upgrade instead of final victory
+PASS: intermission freezes battle and waits for an upgrade
+PASS: stage transition fully heals and refreshes skills
+PASS: stage transition preserves hero progress and upgrades
+PASS: stage transition removes previous enemies, projectiles and effects
+PASS: new stage resets local objectives and safely positions the hero
+PASS: stage 2 begins in the required campaign order
+PASS: stage 2 shows only its map and themed landmarks
+PASS: stage 2 wave 0 spawns its exact finite quota
+PASS: stage 2 wave 0 cannot endlessly respawn
+PASS: stage 2 advances to wave 1 only after clearing enemies
+PASS: stage 2 wave 1 spawns its exact finite quota
+PASS: stage 2 wave 1 cannot endlessly respawn
+PASS: stage 2 advances to wave 2 only after clearing enemies
+PASS: stage 2 wave 2 spawns its exact finite quota
+PASS: stage 2 wave 2 cannot endlessly respawn
+PASS: stage 2 boss arrives only in the final wave
+PASS: stage 2 boss death cannot ignore surviving enemies
+PASS: stage 2 completes its full required enemy count
+PASS: all 84 enemies across three cleared stages produce the final victory
+PASS: restart returns to the savanna and clears campaign progress
+PASS: pause freezes campaign spawn timers and quotas
 PASS: top view uses an orthographic camera
 PASS: oblique view uses perspective
 PASS: third-person view is closer to the hero
