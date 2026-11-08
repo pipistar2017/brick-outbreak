@@ -1,22 +1,29 @@
 """Package a freshly exported app without altering its signed bundle contents."""
 from pathlib import Path
+import argparse
 import hashlib
 import shutil
 import zipfile
 
+from build_info import MANIFEST, version
+
 root = Path(__file__).resolve().parents[1]
-dist = root / 'dist'
+parser = argparse.ArgumentParser()
+parser.add_argument('--output-dir', type=Path, default=root / 'dist')
+dist = parser.parse_args().output_dir
 package = dist / 'Brick-Outbreak-macOS.zip'
 validation = (dist / 'VALIDATION.txt').read_text()
 assert validation.rstrip().endswith('ALL CHECKS PASSED'), 'Run verification before packaging.'
 assert validation.count('SMOKE TEST COMPLETE') == 2, 'Source and exported resources must both pass.'
-(dist / 'TEST-REPORT.txt').write_text("""Brick Outbreak MVP 0.7.0 — hero growth, third skills and difficulty
+shutil.copyfile(MANIFEST, dist / 'BUILD-INFO.json')
+(dist / 'TEST-REPORT.txt').write_text(f"""Brick Outbreak MVP {version()} — energy circles, redesigned enemies, click movement and galaxy ending
 Validated on Linux x86_64 / Godot 4.6.3.
 
 PASS: 589 source gameplay/model checks and the same 589 checks against exported PCK.
 PASS: ZIP CRC, application plist, executable permissions, x86_64 + arm64 slices.
 PASS: Code signature load commands present (not Apple signature validation).
-PASS: Actual OpenGL new-skill screenshots, menu/difficulty selection and demonstration inspected.
+PASS: Exported runtime fingerprint matches the current source and build manifest.
+This packaging command does not assess screenshots or graphical performance.
 PASS: The complete campaign remains covered by the exported-resource checks.
 
 New checks cover per-stage hero health and retained armour, all three difficulty
@@ -41,6 +48,7 @@ validation, Gatekeeper acceptance or notarization. Ad-hoc signed test build.
 Original procedural brick-style models and environments. No iOS/iPad build.
 """)
 extras = {
+    'BUILD-INFO.json': dist / 'BUILD-INFO.json',
     '安装说明-README.txt': root / 'README.md',
     'TEST-REPORT.txt': dist / 'TEST-REPORT.txt',
     'VALIDATION.txt': dist / 'VALIDATION.txt',
@@ -65,7 +73,7 @@ with zipfile.ZipFile(dist / 'Brick-Outbreak-Source.zip', 'w', compression=zipfil
         if path.is_file() and not any(part in {'.git', '.godot', 'dist', '__pycache__'} for part in rel.parts):
             z.write(path, str(Path('Brick-Outbreak-Source') / rel))
     for name in ['heroes.png', 'heroes-back.png', 'gameplay.png', 'combat-0.png', 'combat-1.png', 'combat-2.png', 'zombies.png', 'zombies-back.png', 'view-0.png', 'view-1.png', 'view-2.png', 'stage-0.png', 'stage-1.png', 'stage-2.png', 'intermission.png', 'victory.png', 'ultimate-0.png', 'ultimate-1.png', 'ultimate-2.png', 'difficulty.png']:
-        z.write(dist / name, str(Path('Brick-Outbreak-Source/dist') / name))
+        z.write(root / 'dist' / name, str(Path('Brick-Outbreak-Source/dist') / name))
 checksums = []
 for name in ['Brick-Outbreak-macOS.zip', 'Brick-Outbreak-Source.zip']:
     path = dist / name

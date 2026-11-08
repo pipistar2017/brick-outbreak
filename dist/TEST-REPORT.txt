@@ -1,21 +1,27 @@
-Brick Outbreak MVP 0.7.0 — hero growth, third skills and difficulty
+Brick Outbreak MVP 0.8.0 — energy circles, redesigned enemies, click movement and galaxy ending
 Validated on Linux x86_64 / Godot 4.6.3.
 
-PASS: 398 source gameplay/model checks and the same 398 checks against exported PCK.
+PASS: 589 source gameplay/model checks and the same 589 checks against exported PCK.
 PASS: ZIP CRC, application plist, executable permissions, x86_64 + arm64 slices.
 PASS: Code signature load commands present (not Apple signature validation).
-PASS: Actual OpenGL new-skill screenshots, menu/difficulty selection and demonstration inspected.
+PASS: Exported runtime fingerprint matches the current source and build manifest.
+This packaging command does not assess screenshots or graphical performance.
 PASS: The complete campaign remains covered by the exported-resource checks.
 
 New checks cover per-stage hero health and retained armour, all three difficulty
 settings and actual movement/attack changes, Q/E adjustments, third-skill directional
 coverage, landing time, damage totals, upgrade scaling, cooldowns, pause and cleanup,
 plus F-key and button input.
-Campaign checks cover all nine finite waves and 84 required enemies, ordered
-stage progression, final-wave bosses, remaining-enemy clearance, intermission
-upgrades, retained progress, healing/cooldown reset, cleanup and final victory.
-Model checks cover fifteen themed enemies, articulated quadrupeds and soldiers,
+Campaign checks cover all three energy circles, airborne immunity, ten-kill descent,
+continuous capped spawning beyond the former quotas, full basic damage, reduced
+Q/E/F damage and impact timing, live health display, destruction cleanup,
+intermission upgrades, retained progress and final victory.
+Model checks cover eighteen themed enemies, articulated quadrupeds and soldiers,
 material feedback, cache isolation, ranged launch/hits and three bestiary pages.
+Click movement checks cover ground picking in all three views, arrival, keyboard
+override, arena bounds, circle detours, landing replans and pause/transition cleanup.
+Ending checks cover all three winning heroes, sky descent, dialogue order,
+recruitment and future teamwork, skip/finish and restart/menu cleanup.
 Existing hero/combat/camera checks retained and updated for the campaign rules.
 See VALIDATION.txt for the complete automated test output.
 

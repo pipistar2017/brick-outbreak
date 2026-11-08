@@ -1,4 +1,6 @@
 """Verify source and (optionally) exported macOS game resources; requires Godot 4.6.3."""
+import argparse
+import json
 import os
 from pathlib import Path
 import plistlib
@@ -10,6 +12,12 @@ import tempfile
 import zipfile
 
 root = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(root / 'tools'))
+from build_info import fingerprint, version
+parser = argparse.ArgumentParser()
+parser.add_argument('package', nargs='?')
+parser.add_argument('--package-only', action='store_true')
+options = parser.parse_args()
 
 def run(args):
     result = subprocess.run(['godot', '--headless', *args, '--', '--smoke-test'],
@@ -23,15 +31,16 @@ def run(args):
     assert count == 589, f'Expected 589 checks, got {count}'
     return count
 
-print('SOURCE CHECKS')
-run(['--path', str(root)])
-if len(sys.argv) > 1:
-    with zipfile.ZipFile(sys.argv[1]) as z:
+if not options.package_only:
+    print('SOURCE CHECKS')
+    run(['--path', str(root)])
+if options.package:
+    with zipfile.ZipFile(options.package) as z:
         assert z.testzip() is None, 'ZIP CRC failure'
         names = z.namelist()
         plist_name = next(n for n in names if n.endswith('.app/Contents/Info.plist'))
         info = plistlib.loads(z.read(plist_name))
-        assert info['CFBundleShortVersionString'] == '0.7.0', 'Wrong app version'
+        assert info['CFBundleShortVersionString'] == version(), 'Wrong app version'
         binary_name = plist_name.removesuffix('Info.plist') + 'MacOS/' + info['CFBundleExecutable']
         blob = z.read(binary_name)
         magic, count = struct.unpack_from('>II', blob)
@@ -60,6 +69,15 @@ if len(sys.argv) > 1:
         with tempfile.TemporaryDirectory() as work:
             pack = Path(work) / 'game.pck'
             pack.write_bytes(z.read(pck))
+            identity = subprocess.run(['godot', '--headless', '--main-pack', str(pack), '--', '--build-info'],
+                                      text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=30)
+            assert identity.returncode == 0, identity.stdout
+            line = next((line for line in identity.stdout.splitlines() if line.startswith('BUILD_INFO:')), None)
+            assert line, 'Exported app has no build manifest; this may be an old package'
+            metadata = json.loads(line.removeprefix('BUILD_INFO:'))
+            assert metadata['version'] == version(), 'Exported resource version mismatch'
+            assert metadata['runtime_sha256'] == fingerprint(), 'STALE PACKAGE: exported runtime does not match current source'
+            print('PASS: exported build manifest matches current runtime source fingerprint ' + metadata['runtime_sha256'])
             print('EXPORTED RESOURCE CHECKS (Linux engine, not macOS binary)')
             run(['--main-pack', str(pack)])
 print('ALL CHECKS PASSED')

@@ -152,6 +152,14 @@ func box(parent: Node3D, pos: Vector3, size: Vector3, color: Color) -> MeshInsta
 
 
 func _ready() -> void:
+	if "--build-info" in OS.get_cmdline_user_args():
+		if FileAccess.file_exists("res://assets/build-info.json"):
+			print("BUILD_INFO:"+FileAccess.get_file_as_string("res://assets/build-info.json").replace("\n",""))
+			get_tree().quit(0)
+		else:
+			push_error("Missing build manifest")
+			get_tree().quit(1)
+		return
 	auto_test = "--smoke-test" in OS.get_cmdline_user_args()
 	world = Node3D.new()
 	add_child(world)
@@ -434,6 +442,15 @@ func show_menu() -> void:
 	tip.text = "鼠标左键点地移动 / WASD / 方向键    Q / E / F 技能    空格闪避    Esc 暂停\n三关连续挑战 · 击败十名敌人使法阵落地，击破法阵后晋级 · 等级与强化继承\n1/2/3 视角 · V 切换 · 右键旋转 · 滚轮缩放 · R 复位"
 	tip.add_theme_font_size_override("font_size",17)
 	col.add_child(tip)
+	var build_label := Label.new()
+	var build_stamp := "开发源码"
+	if FileAccess.file_exists("res://assets/build-info.json"):
+		var metadata: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://assets/build-info.json"))
+		if metadata is Dictionary: build_stamp = str(metadata.get("runtime_sha256","")).substr(0,8)
+	build_label.text = "v%s · 构建 %s" % [ProjectSettings.get_setting("application/config/version","dev"),build_stamp]
+	build_label.position = Vector2(900,745)
+	build_label.add_theme_font_size_override("font_size",16)
+	menu.add_child(build_label)
 	var catalog := Button.new()
 	catalog.text = "远征敌人图鉴"
 	catalog.position = Vector2(1000,50)

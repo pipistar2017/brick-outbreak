@@ -1,4 +1,4 @@
-# 积木 / 远征 — Brick Outbreak MVP 0.7.0
+# 积木 / 远征 — Brick Outbreak MVP 0.8.0
 
 原创积木武将 3D 单机闯关游戏。Godot 4.6.3，中文界面，无需联网。选择青龙战将、赤焰游侠或寒霜术士，连续挑战三处主题战场。
 
@@ -56,7 +56,7 @@
 
 仅清空敌人或击败首领不能过关。必须打破法阵，敌人才会全部消散，并停止出生；消散的敌人不额外提供击杀或经验。前两关随后显示强化选择，保留英雄、等级、经验和累计强化，恢复全部血量并刷新技能。第三个法阵被打破后远征胜利。重开从第一关、十次击杀计数为零和满血绿色法阵开始。
 
-下方旧版战斗演示、截图与 v0.7.0 下载包展示此前的有限波次玩法；新法阵以当前源码运行和重新导出的包为准。
+历史战斗演示和部分截图展示 v0.7.0 的有限波次玩法；当前 v0.8.0 安装包已包含法阵、十八种敌人、点击移动与银河超级英雄通关演出。
 
 每关都有六种真实 3D 敌人模型。草原包含四足野狼、斑点豹子、背刺豪猪、节段蛇身与眼镜蛇头、双角犀牛和鬃毛狮王；木乃伊使用层叠绷带、豺首面具、王陵盾甲、法杖与法老冠饰；兵马俑使用陶土面孔、发髻、扎甲、盾牌、长兵和弩。后两关普通敌人血量分别增加 15% / 30%，伤害增加 12% / 24%。
 
@@ -78,11 +78,11 @@
 
 ## 下载与 Mac 安装
 
-[下载 v0.7.0 Mac 测试包](https://github.com/pipistar2017/brick-outbreak/raw/refs/tags/v0.7.0/dist/Brick-Outbreak-macOS.zip)
+[下载当前 v0.8.0 Mac 测试包](https://github.com/pipistar2017/brick-outbreak/raw/refs/heads/main/dist/Brick-Outbreak-macOS.zip)
 
 也可进入仓库 `dist` 目录，打开 `Brick-Outbreak-macOS.zip` 后点击 **Download raw file / 下载原始文件**。请下载该 ZIP，GitHub 的源码归档不能直接安装。
 
-1. 解压 ZIP，将 `Brick Outbreak.app` 拖进“应用程序 / Applications”，替换旧版即可，无需安装 Godot。
+1. 解压 ZIP，将 `Brick Outbreak.app` 拖进“应用程序 / Applications”，替换旧版即可，无需安装 Godot。首次运行请确认英雄选择界面右下角显示 **v0.8.0** 和构建编号；若仍显示旧界面，请确认启动的是刚解压的应用，而非 Dock 或其他目录中的旧副本。
 2. 双击打开。最低目标系统 macOS 11，通用二进制包含 Apple Silicon arm64 与 Intel x86_64。
 3. 这是临时签名测试包，未使用 Apple Developer ID 签名或公证。若系统阻止打开，先尝试启动一次，再到“系统设置 → 隐私与安全性”选择此应用的“仍要打开”。
 4. 若提示“已损坏”，先重新解压并核对 `dist/SHA256SUMS.txt`。确认来源后，可在终端仅移除此应用的下载隔离标记：
@@ -192,3 +192,11 @@ mkdir -p "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_DATA_HOME"
 超级英雄从空中降落到获胜英雄身旁。落地后展开五段对话：祝贺当前英雄成功闯关；英雄询问身份；超级英雄邀请其加入“银河超级护卫队”；英雄接受；最后承诺今后一起并肩作战。按钮、Enter 或空格推进，最后一段结束后显示原有通关结算；“跳过演出”或 Esc 可直接查看结算。演出中暂停战斗计时和操作；重开及返回选人清理演出角色与界面。失败和前两关过关不会播放结尾演出。
 
 图形环境中可用 `godot --path . -- --ending-preview` 查看并截取入队邀请画面，输出 `/workspace/brick-build/victory-arrival.png`。自动检查覆盖三名英雄触发、降落时序、动态称呼、完整对话、战斗冻结、跳过及清理。
+
+## 安装包与源码一致性
+
+源码提交不会自动更新 `dist`。每次发布必须执行 `./build.sh`，并一起提交 `dist/Brick-Outbreak-macOS.zip`、源码 ZIP、校验和、构建信息和验证报告。README 的当前下载入口指向 `main/dist`，历史 `v0.7.0` 标签始终保留旧版内容。
+
+构建脚本先生成运行资源的 SHA-256 指纹，将 `assets/build-info.json` 嵌入导出的 PCK，再在临时目录导出、运行源码与包内功能检查、打包，并重新验证最终 ZIP。只有全部通过才替换 `dist` 的发布文件，失败不会用未验证的 ZIP 覆盖旧包。`dist/BUILD-INFO.json` 记录版本、精确运行资源指纹与构建时的基础提交；`dist/SHA256SUMS.txt` 校验下载 ZIP。
+
+`tests/verify.py dist/Brick-Outbreak-macOS.zip` 会比较应用版本和包内运行资源指纹与当前源码；拿旧包配新源码会直接失败，不能以源码测试通过代替安装包验证。导出必须先运行 `python3 tools/build_info.py`，推荐统一使用 `./build.sh`。主菜单显示版本与指纹前八位，便于确认运行的安装包。

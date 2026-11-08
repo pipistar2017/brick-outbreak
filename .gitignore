@@ -23,3 +23,6 @@ dist/*
 !dist/ultimate-*.png
 !dist/ultimate-demo.mp4
 !dist/difficulty.png
+
+assets/build-info.json
+!dist/BUILD-INFO.json

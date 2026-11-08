@@ -49,7 +49,7 @@ PASS: health upgrade
 PASS: boss kill alone cannot bypass the campaign
 PASS: defeat
 PASS: restart resets state
-PASS: 60 second finite-wave simulation
+PASS: 60 second continuous circle-spawn simulation respects live cap
 PASS: elapsed time cannot skip waves or spawn an early boss
 PASS: campaign has no former four-minute survival deadline
 PASS: three distinct live 3D previews
@@ -90,40 +90,47 @@ PASS: stage 0 enemy 0 retains hit and frost feedback
 PASS: stage 0 enemy 0 health bar clears its head
 PASS: stage 0 enemy 0 fades and restores its own materials
 PASS: stage 0 enemy 0 shares baked geometry within its type
-PASS: infected animal 0 has four legs and a tail instead of human arms
+PASS: infected animal 0 has a species-specific skeleton without human arms
 PASS: stage 0 enemy 1 uses its themed articulated model
 PASS: stage 0 enemy 1 has moving legs and an attack action
 PASS: stage 0 enemy 1 retains hit and frost feedback
 PASS: stage 0 enemy 1 health bar clears its head
 PASS: stage 0 enemy 1 fades and restores its own materials
 PASS: stage 0 enemy 1 shares baked geometry within its type
-PASS: infected animal 1 has four legs and a tail instead of human arms
+PASS: infected animal 1 has a species-specific skeleton without human arms
 PASS: stage 0 enemy 2 uses its themed articulated model
 PASS: stage 0 enemy 2 has moving legs and an attack action
 PASS: stage 0 enemy 2 retains hit and frost feedback
 PASS: stage 0 enemy 2 health bar clears its head
 PASS: stage 0 enemy 2 fades and restores its own materials
 PASS: stage 0 enemy 2 shares baked geometry within its type
-PASS: infected animal 2 has four legs and a tail instead of human arms
+PASS: infected animal 2 has a species-specific skeleton without human arms
 PASS: stage 0 enemy 3 uses its themed articulated model
 PASS: stage 0 enemy 3 has moving legs and an attack action
 PASS: stage 0 enemy 3 retains hit and frost feedback
 PASS: stage 0 enemy 3 health bar clears its head
 PASS: stage 0 enemy 3 fades and restores its own materials
 PASS: stage 0 enemy 3 shares baked geometry within its type
-PASS: infected animal 3 has four legs and a tail instead of human arms
+PASS: infected animal 3 has a species-specific skeleton without human arms
 PASS: stage 0 enemy 4 uses its themed articulated model
 PASS: stage 0 enemy 4 has moving legs and an attack action
 PASS: stage 0 enemy 4 retains hit and frost feedback
 PASS: stage 0 enemy 4 health bar clears its head
 PASS: stage 0 enemy 4 fades and restores its own materials
 PASS: stage 0 enemy 4 shares baked geometry within its type
-PASS: infected animal 4 has four legs and a tail instead of human arms
+PASS: infected animal 4 has a species-specific skeleton without human arms
+PASS: stage 0 enemy 5 uses its themed articulated model
+PASS: stage 0 enemy 5 has moving legs and an attack action
+PASS: stage 0 enemy 5 retains hit and frost feedback
+PASS: stage 0 enemy 5 health bar clears its head
+PASS: stage 0 enemy 5 fades and restores its own materials
+PASS: stage 0 enemy 5 shares baked geometry within its type
+PASS: infected animal 5 has a species-specific skeleton without human arms
 PASS: stage 0 enemy render mesh count stays bounded
 PASS: stage 0 frost halves animation speed
 PASS: stage 0 ranged attack launches from its actual model
 PASS: stage 0 projectile reaches and damages the player once
-PASS: stage 0 bestiary uses all five actual battle models
+PASS: stage 0 bestiary uses all six actual battle models
 PASS: stage 0 bestiary supports model rotation
 PASS: stage 1 enemy 0 uses its themed articulated model
 PASS: stage 1 enemy 0 has moving legs and an attack action
@@ -155,11 +162,17 @@ PASS: stage 1 enemy 4 retains hit and frost feedback
 PASS: stage 1 enemy 4 health bar clears its head
 PASS: stage 1 enemy 4 fades and restores its own materials
 PASS: stage 1 enemy 4 shares baked geometry within its type
+PASS: stage 1 enemy 5 uses its themed articulated model
+PASS: stage 1 enemy 5 has moving legs and an attack action
+PASS: stage 1 enemy 5 retains hit and frost feedback
+PASS: stage 1 enemy 5 health bar clears its head
+PASS: stage 1 enemy 5 fades and restores its own materials
+PASS: stage 1 enemy 5 shares baked geometry within its type
 PASS: stage 1 enemy render mesh count stays bounded
 PASS: stage 1 frost halves animation speed
 PASS: stage 1 ranged attack launches from its actual model
 PASS: stage 1 projectile reaches and damages the player once
-PASS: stage 1 bestiary uses all five actual battle models
+PASS: stage 1 bestiary uses all six actual battle models
 PASS: stage 1 bestiary supports model rotation
 PASS: stage 2 enemy 0 uses its themed articulated model
 PASS: stage 2 enemy 0 has moving legs and an attack action
@@ -191,68 +204,137 @@ PASS: stage 2 enemy 4 retains hit and frost feedback
 PASS: stage 2 enemy 4 health bar clears its head
 PASS: stage 2 enemy 4 fades and restores its own materials
 PASS: stage 2 enemy 4 shares baked geometry within its type
+PASS: stage 2 enemy 5 uses its themed articulated model
+PASS: stage 2 enemy 5 has moving legs and an attack action
+PASS: stage 2 enemy 5 retains hit and frost feedback
+PASS: stage 2 enemy 5 health bar clears its head
+PASS: stage 2 enemy 5 fades and restores its own materials
+PASS: stage 2 enemy 5 shares baked geometry within its type
 PASS: stage 2 enemy render mesh count stays bounded
 PASS: stage 2 frost halves animation speed
 PASS: stage 2 ranged attack launches from its actual model
 PASS: stage 2 projectile reaches and damages the player once
-PASS: stage 2 bestiary uses all five actual battle models
+PASS: stage 2 bestiary uses all six actual battle models
 PASS: stage 2 bestiary supports model rotation
 PASS: campaign builds three distinct environment roots
 PASS: shared mesh cache cannot mix different campaign themes
-PASS: stage 0 begins in the required campaign order
-PASS: stage 0 shows only its map and themed landmarks
-PASS: stage 0 wave 0 spawns its exact finite quota
-PASS: stage 0 wave 0 cannot endlessly respawn
-PASS: stage 0 advances to wave 1 only after clearing enemies
-PASS: stage 0 wave 1 spawns its exact finite quota
-PASS: stage 0 wave 1 cannot endlessly respawn
-PASS: stage 0 advances to wave 2 only after clearing enemies
-PASS: stage 0 wave 2 spawns its exact finite quota
-PASS: stage 0 wave 2 cannot endlessly respawn
-PASS: stage 0 boss arrives only in the final wave
-PASS: stage 0 boss death cannot ignore surviving enemies
-PASS: stage 0 completes its full required enemy count
-PASS: stage 0 opens the intermission upgrade instead of final victory
-PASS: intermission freezes battle and waits for an upgrade
-PASS: stage transition fully heals and refreshes skills
-PASS: stage transition preserves hero progress and upgrades
-PASS: stage transition removes previous enemies, projectiles and effects
-PASS: new stage resets local objectives and safely positions the hero
-PASS: stage 1 begins in the required campaign order
-PASS: stage 1 shows only its map and themed landmarks
-PASS: stage 1 wave 0 spawns its exact finite quota
-PASS: stage 1 wave 0 cannot endlessly respawn
-PASS: stage 1 advances to wave 1 only after clearing enemies
-PASS: stage 1 wave 1 spawns its exact finite quota
-PASS: stage 1 wave 1 cannot endlessly respawn
-PASS: stage 1 advances to wave 2 only after clearing enemies
-PASS: stage 1 wave 2 spawns its exact finite quota
-PASS: stage 1 wave 2 cannot endlessly respawn
-PASS: stage 1 boss arrives only in the final wave
-PASS: stage 1 boss death cannot ignore surviving enemies
-PASS: stage 1 completes its full required enemy count
-PASS: stage 1 opens the intermission upgrade instead of final victory
-PASS: intermission freezes battle and waits for an upgrade
-PASS: stage transition fully heals and refreshes skills
-PASS: stage transition preserves hero progress and upgrades
-PASS: stage transition removes previous enemies, projectiles and effects
-PASS: new stage resets local objectives and safely positions the hero
-PASS: stage 2 begins in the required campaign order
-PASS: stage 2 shows only its map and themed landmarks
-PASS: stage 2 wave 0 spawns its exact finite quota
-PASS: stage 2 wave 0 cannot endlessly respawn
-PASS: stage 2 advances to wave 1 only after clearing enemies
-PASS: stage 2 wave 1 spawns its exact finite quota
-PASS: stage 2 wave 1 cannot endlessly respawn
-PASS: stage 2 advances to wave 2 only after clearing enemies
-PASS: stage 2 wave 2 spawns its exact finite quota
-PASS: stage 2 wave 2 cannot endlessly respawn
-PASS: stage 2 boss arrives only in the final wave
-PASS: stage 2 boss death cannot ignore surviving enemies
-PASS: stage 2 completes its full required enemy count
-PASS: all 84 enemies across three cleared stages produce the final victory
-PASS: restart returns to the savanna and clears campaign progress
-PASS: pause freezes campaign spawn timers and quotas
+PASS: circle campaign stage 0 starts in order
+PASS: stage 0 circle color and health
+PASS: brick platform, crown, sockets and energy ornaments float initially
+PASS: airborne circle is invulnerable
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: nine defeats leave circle airborne
+PASS: enemy emerges from center circle
+PASS: tenth defeat initiates animated descent
+PASS: pause freezes circle descent
+PASS: circle lands at exact map center
+PASS: ten kills and no enemies cannot finish an intact circle
+PASS: continuous spawning obeys twelve-enemy live cap
+PASS: circle replenishes enemies after a defeat
+PASS: intact circle spawns beyond the old finite quota
+PASS: basic attacks deal full circle damage
+PASS: skills deal exactly half circle damage
+PASS: circle label and health bar update immediately
+PASS: Q applies reduced circle damage
+PASS: meteor cannot damage circle before landing
+PASS: meteor deals half damage on impact
+PASS: circle destruction clamps health and disables attacks
+PASS: circle destruction makes all surviving enemies disappear
+PASS: destroyed circle stops spawning immediately
+PASS: circle completion cleans all battle objects
+PASS: destroyed circle opens intermission
+PASS: transition retains upgrades and fully heals
+PASS: next stage creates a fresh airborne circle
+PASS: circle campaign stage 1 starts in order
+PASS: stage 1 circle color and health
+PASS: brick platform, crown, sockets and energy ornaments float initially
+PASS: airborne circle is invulnerable
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: nine defeats leave circle airborne
+PASS: enemy emerges from center circle
+PASS: tenth defeat initiates animated descent
+PASS: pause freezes circle descent
+PASS: circle lands at exact map center
+PASS: ten kills and no enemies cannot finish an intact circle
+PASS: continuous spawning obeys twelve-enemy live cap
+PASS: circle replenishes enemies after a defeat
+PASS: intact circle spawns beyond the old finite quota
+PASS: basic attacks deal full circle damage
+PASS: skills deal exactly half circle damage
+PASS: circle label and health bar update immediately
+PASS: Q applies reduced circle damage
+PASS: meteor cannot damage circle before landing
+PASS: meteor deals half damage on impact
+PASS: circle destruction clamps health and disables attacks
+PASS: circle destruction makes all surviving enemies disappear
+PASS: destroyed circle stops spawning immediately
+PASS: circle completion cleans all battle objects
+PASS: destroyed circle opens intermission
+PASS: transition retains upgrades and fully heals
+PASS: next stage creates a fresh airborne circle
+PASS: circle campaign stage 2 starts in order
+PASS: stage 2 circle color and health
+PASS: brick platform, crown, sockets and energy ornaments float initially
+PASS: airborne circle is invulnerable
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: nine defeats leave circle airborne
+PASS: enemy emerges from center circle
+PASS: tenth defeat initiates animated descent
+PASS: pause freezes circle descent
+PASS: circle lands at exact map center
+PASS: ten kills and no enemies cannot finish an intact circle
+PASS: continuous spawning obeys twelve-enemy live cap
+PASS: circle replenishes enemies after a defeat
+PASS: intact circle spawns beyond the old finite quota
+PASS: basic attacks deal full circle damage
+PASS: skills deal exactly half circle damage
+PASS: circle label and health bar update immediately
+PASS: Q applies reduced circle damage
+PASS: meteor cannot damage circle before landing
+PASS: meteor deals half damage on impact
+PASS: circle destruction clamps health and disables attacks
+PASS: circle destruction makes all surviving enemies disappear
+PASS: destroyed circle stops spawning immediately
+PASS: circle completion cleans all battle objects
+PASS: destroying third circle wins campaign
+PASS: restart restores green circle and objective
+PASS: dragon execution deals half max circle health instead of instant destruction
+PASS: twelve frost pulses total one hundred circle damage
+PASS: melee circle damage waits for blade impact
+PASS: hero 0 basic attack hits circle at full damage
+PASS: out-of-range area damage cannot hit circle
+PASS: hero 0 E deals half circle damage
+PASS: ranged circle damage waits for projectile impact
+PASS: hero 1 basic attack hits circle at full damage
+PASS: out-of-range area damage cannot hit circle
+PASS: ranged circle damage waits for projectile impact
+PASS: hero 2 basic attack hits circle at full damage
+PASS: out-of-range area damage cannot hit circle
+PASS: hero 2 E deals half circle damage
 PASS: top view uses an orthographic camera
 PASS: oblique view uses perspective
 PASS: third-person view is closer to the hero
@@ -293,6 +375,9 @@ PASS: difficulty calculations cannot mutate normal-mode base stats
 PASS: easy stage 0 enemy 4 reduces all three stats by 20 percent
 PASS: hard stage 0 enemy 4 applies the specified stage multiplier
 PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 0 enemy 5 reduces all three stats by 20 percent
+PASS: hard stage 0 enemy 5 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
 PASS: easy stage 1 enemy 0 reduces all three stats by 20 percent
 PASS: hard stage 1 enemy 0 applies the specified stage multiplier
 PASS: difficulty calculations cannot mutate normal-mode base stats
@@ -308,6 +393,9 @@ PASS: difficulty calculations cannot mutate normal-mode base stats
 PASS: easy stage 1 enemy 4 reduces all three stats by 20 percent
 PASS: hard stage 1 enemy 4 applies the specified stage multiplier
 PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 1 enemy 5 reduces all three stats by 20 percent
+PASS: hard stage 1 enemy 5 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
 PASS: easy stage 2 enemy 0 reduces all three stats by 20 percent
 PASS: hard stage 2 enemy 0 applies the specified stage multiplier
 PASS: difficulty calculations cannot mutate normal-mode base stats
@@ -322,6 +410,9 @@ PASS: hard stage 2 enemy 3 applies the specified stage multiplier
 PASS: difficulty calculations cannot mutate normal-mode base stats
 PASS: easy stage 2 enemy 4 reduces all three stats by 20 percent
 PASS: hard stage 2 enemy 4 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 2 enemy 5 reduces all three stats by 20 percent
+PASS: hard stage 2 enemy 5 applies the specified stage multiplier
 PASS: difficulty calculations cannot mutate normal-mode base stats
 PASS: difficulty 0 is used by real spawned enemies
 PASS: difficulty 0 remains selected after returning to hero selection
@@ -399,10 +490,111 @@ PASS: third skill becomes ready after twenty active seconds
 PASS: hero 1 third skill receives retained damage upgrades
 PASS: hero 2 third skill receives retained damage upgrades
 PASS: restart resets third skills, channels and additional armour
+PASS: stage 0 has six enemies in roster
+PASS: stage 0 spawn patterns include every enemy
+PASS: stage 0 arrow projectile keeps its launch direction after hero moves
+PASS: stage 0 snake projectile keeps its launch direction after hero moves
+PASS: stage 0 fireball projectile keeps its launch direction after hero moves
+PASS: stage 0 boss uses ranged fireballs
+PASS: stage 0 boss switches to close claw attack
+PASS: stage 0 charge has a stationary warning phase
+PASS: stage 0 charge is directional and can be dodged
+PASS: stage 0 charge sweeps through and damages hero once
+PASS: stage 1 has six enemies in roster
+PASS: stage 1 spawn patterns include every enemy
+PASS: stage 1 arrow projectile keeps its launch direction after hero moves
+PASS: stage 1 snake projectile keeps its launch direction after hero moves
+PASS: stage 1 fireball projectile keeps its launch direction after hero moves
+PASS: stage 1 boss uses ranged fireballs
+PASS: stage 1 boss switches to close claw attack
+PASS: stage 1 charge has a stationary warning phase
+PASS: stage 1 charge is directional and can be dodged
+PASS: stage 1 charge sweeps through and damages hero once
+PASS: stage 2 has six enemies in roster
+PASS: stage 2 spawn patterns include every enemy
+PASS: stage 2 arrow projectile keeps its launch direction after hero moves
+PASS: terracotta catapult has four wheels and animated throwing arm
+PASS: hamburger-shaped stone snapshots hero location and marks impact zone
+PASS: catapult follows a fixed parabolic arc
+PASS: hero can leave the marked stone impact zone to avoid damage
+PASS: stone deals damage once at its original landing zone
+PASS: pause freezes catapult flight
+PASS: battle cleanup removes catapult projectile and landing marker
+PASS: view 0 left click projects onto the ground correctly
+PASS: view 0 click movement uses normal hero speed
+PASS: view 0 hero arrives and stops without overshooting
+PASS: view 1 left click projects onto the ground correctly
+PASS: view 1 click movement uses normal hero speed
+PASS: view 1 hero arrives and stops without overshooting
+PASS: view 2 left click projects onto the ground correctly
+PASS: view 2 click movement uses normal hero speed
+PASS: view 2 hero arrives and stops without overshooting
+PASS: keyboard movement cancels click target and keeps diagonal speed normalized
+PASS: off-arena click targets are clamped to playable ground
+PASS: a second click replaces the previous destination
+PASS: W key event cancels a click route immediately
+PASS: pause freezes click movement and preserves its destination
+PASS: paused game ignores new movement clicks
+PASS: upgrade selection ignores ground clicks
+PASS: restart clears click movement
+PASS: clicking landed circle chooses a reachable position beside it
+PASS: opposite-side click creates a route around the landed circle
+PASS: hero walks around the circle and reaches the opposite destination
+PASS: route replans when an airborne circle lands in its path
+PASS: stage transitions clear old movement targets
+PASS: returning to hero selection clears movement targets
+PASS: defeat never triggers recruitment scene
+PASS: first-stage victory keeps intermission without final recruitment
+PASS: hero 0 final circle destruction starts the ending
+PASS: ending retains the winning hero and hides battle HUD
+PASS: guardian has detailed red-gold armour, twin backpack rings and leg flames
+PASS: guardian starts high in the sky before dialogue
+PASS: dialogue cannot advance before landing
+PASS: ending animates descent while battle timers stay frozen
+PASS: landing completes before first dialogue appears
+PASS: congratulations address the current winning hero
+PASS: winning hero speaks in the conversation
+PASS: Enter advances to the galaxy team invitation
+PASS: space advances the hero acceptance
+PASS: guardian promises future adventures before settlement
+PASS: finished dialogue restores the victory result screen
+PASS: ending completion is idempotent
+PASS: hero 1 final circle destruction starts the ending
+PASS: ending retains the winning hero and hides battle HUD
+PASS: guardian has detailed red-gold armour, twin backpack rings and leg flames
+PASS: guardian starts high in the sky before dialogue
+PASS: dialogue cannot advance before landing
+PASS: ending animates descent while battle timers stay frozen
+PASS: landing completes before first dialogue appears
+PASS: congratulations address the current winning hero
+PASS: winning hero speaks in the conversation
+PASS: Enter advances to the galaxy team invitation
+PASS: space advances the hero acceptance
+PASS: guardian promises future adventures before settlement
+PASS: finished dialogue restores the victory result screen
+PASS: ending completion is idempotent
+PASS: hero 2 final circle destruction starts the ending
+PASS: ending retains the winning hero and hides battle HUD
+PASS: guardian has detailed red-gold armour, twin backpack rings and leg flames
+PASS: guardian starts high in the sky before dialogue
+PASS: dialogue cannot advance before landing
+PASS: ending animates descent while battle timers stay frozen
+PASS: landing completes before first dialogue appears
+PASS: congratulations address the current winning hero
+PASS: winning hero speaks in the conversation
+PASS: Enter advances to the galaxy team invitation
+PASS: space advances the hero acceptance
+PASS: guardian promises future adventures before settlement
+PASS: finished dialogue restores the victory result screen
+PASS: ending completion is idempotent
+PASS: Escape skips descent safely to victory settlement
+PASS: restart cleans ending actor and dialogue UI
+PASS: returning to hero selection cleans ending scene
 SMOKE TEST COMPLETE
 
 PASS: ZIP CRC, Info.plist, x86_64 + arm64, signature presence, executable permission
 Note: signature presence is not Apple signature validation or notarization.
+PASS: exported build manifest matches current runtime source fingerprint 4e107de9c9f41810bd20b224c03f135c9569c42fd098c5e46e819df582e449ba
 EXPORTED RESOURCE CHECKS (Linux engine, not macOS binary)
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
@@ -454,7 +646,7 @@ PASS: health upgrade
 PASS: boss kill alone cannot bypass the campaign
 PASS: defeat
 PASS: restart resets state
-PASS: 60 second finite-wave simulation
+PASS: 60 second continuous circle-spawn simulation respects live cap
 PASS: elapsed time cannot skip waves or spawn an early boss
 PASS: campaign has no former four-minute survival deadline
 PASS: three distinct live 3D previews
@@ -495,40 +687,47 @@ PASS: stage 0 enemy 0 retains hit and frost feedback
 PASS: stage 0 enemy 0 health bar clears its head
 PASS: stage 0 enemy 0 fades and restores its own materials
 PASS: stage 0 enemy 0 shares baked geometry within its type
-PASS: infected animal 0 has four legs and a tail instead of human arms
+PASS: infected animal 0 has a species-specific skeleton without human arms
 PASS: stage 0 enemy 1 uses its themed articulated model
 PASS: stage 0 enemy 1 has moving legs and an attack action
 PASS: stage 0 enemy 1 retains hit and frost feedback
 PASS: stage 0 enemy 1 health bar clears its head
 PASS: stage 0 enemy 1 fades and restores its own materials
 PASS: stage 0 enemy 1 shares baked geometry within its type
-PASS: infected animal 1 has four legs and a tail instead of human arms
+PASS: infected animal 1 has a species-specific skeleton without human arms
 PASS: stage 0 enemy 2 uses its themed articulated model
 PASS: stage 0 enemy 2 has moving legs and an attack action
 PASS: stage 0 enemy 2 retains hit and frost feedback
 PASS: stage 0 enemy 2 health bar clears its head
 PASS: stage 0 enemy 2 fades and restores its own materials
 PASS: stage 0 enemy 2 shares baked geometry within its type
-PASS: infected animal 2 has four legs and a tail instead of human arms
+PASS: infected animal 2 has a species-specific skeleton without human arms
 PASS: stage 0 enemy 3 uses its themed articulated model
 PASS: stage 0 enemy 3 has moving legs and an attack action
 PASS: stage 0 enemy 3 retains hit and frost feedback
 PASS: stage 0 enemy 3 health bar clears its head
 PASS: stage 0 enemy 3 fades and restores its own materials
 PASS: stage 0 enemy 3 shares baked geometry within its type
-PASS: infected animal 3 has four legs and a tail instead of human arms
+PASS: infected animal 3 has a species-specific skeleton without human arms
 PASS: stage 0 enemy 4 uses its themed articulated model
 PASS: stage 0 enemy 4 has moving legs and an attack action
 PASS: stage 0 enemy 4 retains hit and frost feedback
 PASS: stage 0 enemy 4 health bar clears its head
 PASS: stage 0 enemy 4 fades and restores its own materials
 PASS: stage 0 enemy 4 shares baked geometry within its type
-PASS: infected animal 4 has four legs and a tail instead of human arms
+PASS: infected animal 4 has a species-specific skeleton without human arms
+PASS: stage 0 enemy 5 uses its themed articulated model
+PASS: stage 0 enemy 5 has moving legs and an attack action
+PASS: stage 0 enemy 5 retains hit and frost feedback
+PASS: stage 0 enemy 5 health bar clears its head
+PASS: stage 0 enemy 5 fades and restores its own materials
+PASS: stage 0 enemy 5 shares baked geometry within its type
+PASS: infected animal 5 has a species-specific skeleton without human arms
 PASS: stage 0 enemy render mesh count stays bounded
 PASS: stage 0 frost halves animation speed
 PASS: stage 0 ranged attack launches from its actual model
 PASS: stage 0 projectile reaches and damages the player once
-PASS: stage 0 bestiary uses all five actual battle models
+PASS: stage 0 bestiary uses all six actual battle models
 PASS: stage 0 bestiary supports model rotation
 PASS: stage 1 enemy 0 uses its themed articulated model
 PASS: stage 1 enemy 0 has moving legs and an attack action
@@ -560,11 +759,17 @@ PASS: stage 1 enemy 4 retains hit and frost feedback
 PASS: stage 1 enemy 4 health bar clears its head
 PASS: stage 1 enemy 4 fades and restores its own materials
 PASS: stage 1 enemy 4 shares baked geometry within its type
+PASS: stage 1 enemy 5 uses its themed articulated model
+PASS: stage 1 enemy 5 has moving legs and an attack action
+PASS: stage 1 enemy 5 retains hit and frost feedback
+PASS: stage 1 enemy 5 health bar clears its head
+PASS: stage 1 enemy 5 fades and restores its own materials
+PASS: stage 1 enemy 5 shares baked geometry within its type
 PASS: stage 1 enemy render mesh count stays bounded
 PASS: stage 1 frost halves animation speed
 PASS: stage 1 ranged attack launches from its actual model
 PASS: stage 1 projectile reaches and damages the player once
-PASS: stage 1 bestiary uses all five actual battle models
+PASS: stage 1 bestiary uses all six actual battle models
 PASS: stage 1 bestiary supports model rotation
 PASS: stage 2 enemy 0 uses its themed articulated model
 PASS: stage 2 enemy 0 has moving legs and an attack action
@@ -596,68 +801,137 @@ PASS: stage 2 enemy 4 retains hit and frost feedback
 PASS: stage 2 enemy 4 health bar clears its head
 PASS: stage 2 enemy 4 fades and restores its own materials
 PASS: stage 2 enemy 4 shares baked geometry within its type
+PASS: stage 2 enemy 5 uses its themed articulated model
+PASS: stage 2 enemy 5 has moving legs and an attack action
+PASS: stage 2 enemy 5 retains hit and frost feedback
+PASS: stage 2 enemy 5 health bar clears its head
+PASS: stage 2 enemy 5 fades and restores its own materials
+PASS: stage 2 enemy 5 shares baked geometry within its type
 PASS: stage 2 enemy render mesh count stays bounded
 PASS: stage 2 frost halves animation speed
 PASS: stage 2 ranged attack launches from its actual model
 PASS: stage 2 projectile reaches and damages the player once
-PASS: stage 2 bestiary uses all five actual battle models
+PASS: stage 2 bestiary uses all six actual battle models
 PASS: stage 2 bestiary supports model rotation
 PASS: campaign builds three distinct environment roots
 PASS: shared mesh cache cannot mix different campaign themes
-PASS: stage 0 begins in the required campaign order
-PASS: stage 0 shows only its map and themed landmarks
-PASS: stage 0 wave 0 spawns its exact finite quota
-PASS: stage 0 wave 0 cannot endlessly respawn
-PASS: stage 0 advances to wave 1 only after clearing enemies
-PASS: stage 0 wave 1 spawns its exact finite quota
-PASS: stage 0 wave 1 cannot endlessly respawn
-PASS: stage 0 advances to wave 2 only after clearing enemies
-PASS: stage 0 wave 2 spawns its exact finite quota
-PASS: stage 0 wave 2 cannot endlessly respawn
-PASS: stage 0 boss arrives only in the final wave
-PASS: stage 0 boss death cannot ignore surviving enemies
-PASS: stage 0 completes its full required enemy count
-PASS: stage 0 opens the intermission upgrade instead of final victory
-PASS: intermission freezes battle and waits for an upgrade
-PASS: stage transition fully heals and refreshes skills
-PASS: stage transition preserves hero progress and upgrades
-PASS: stage transition removes previous enemies, projectiles and effects
-PASS: new stage resets local objectives and safely positions the hero
-PASS: stage 1 begins in the required campaign order
-PASS: stage 1 shows only its map and themed landmarks
-PASS: stage 1 wave 0 spawns its exact finite quota
-PASS: stage 1 wave 0 cannot endlessly respawn
-PASS: stage 1 advances to wave 1 only after clearing enemies
-PASS: stage 1 wave 1 spawns its exact finite quota
-PASS: stage 1 wave 1 cannot endlessly respawn
-PASS: stage 1 advances to wave 2 only after clearing enemies
-PASS: stage 1 wave 2 spawns its exact finite quota
-PASS: stage 1 wave 2 cannot endlessly respawn
-PASS: stage 1 boss arrives only in the final wave
-PASS: stage 1 boss death cannot ignore surviving enemies
-PASS: stage 1 completes its full required enemy count
-PASS: stage 1 opens the intermission upgrade instead of final victory
-PASS: intermission freezes battle and waits for an upgrade
-PASS: stage transition fully heals and refreshes skills
-PASS: stage transition preserves hero progress and upgrades
-PASS: stage transition removes previous enemies, projectiles and effects
-PASS: new stage resets local objectives and safely positions the hero
-PASS: stage 2 begins in the required campaign order
-PASS: stage 2 shows only its map and themed landmarks
-PASS: stage 2 wave 0 spawns its exact finite quota
-PASS: stage 2 wave 0 cannot endlessly respawn
-PASS: stage 2 advances to wave 1 only after clearing enemies
-PASS: stage 2 wave 1 spawns its exact finite quota
-PASS: stage 2 wave 1 cannot endlessly respawn
-PASS: stage 2 advances to wave 2 only after clearing enemies
-PASS: stage 2 wave 2 spawns its exact finite quota
-PASS: stage 2 wave 2 cannot endlessly respawn
-PASS: stage 2 boss arrives only in the final wave
-PASS: stage 2 boss death cannot ignore surviving enemies
-PASS: stage 2 completes its full required enemy count
-PASS: all 84 enemies across three cleared stages produce the final victory
-PASS: restart returns to the savanna and clears campaign progress
-PASS: pause freezes campaign spawn timers and quotas
+PASS: circle campaign stage 0 starts in order
+PASS: stage 0 circle color and health
+PASS: brick platform, crown, sockets and energy ornaments float initially
+PASS: airborne circle is invulnerable
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: nine defeats leave circle airborne
+PASS: enemy emerges from center circle
+PASS: tenth defeat initiates animated descent
+PASS: pause freezes circle descent
+PASS: circle lands at exact map center
+PASS: ten kills and no enemies cannot finish an intact circle
+PASS: continuous spawning obeys twelve-enemy live cap
+PASS: circle replenishes enemies after a defeat
+PASS: intact circle spawns beyond the old finite quota
+PASS: basic attacks deal full circle damage
+PASS: skills deal exactly half circle damage
+PASS: circle label and health bar update immediately
+PASS: Q applies reduced circle damage
+PASS: meteor cannot damage circle before landing
+PASS: meteor deals half damage on impact
+PASS: circle destruction clamps health and disables attacks
+PASS: circle destruction makes all surviving enemies disappear
+PASS: destroyed circle stops spawning immediately
+PASS: circle completion cleans all battle objects
+PASS: destroyed circle opens intermission
+PASS: transition retains upgrades and fully heals
+PASS: next stage creates a fresh airborne circle
+PASS: circle campaign stage 1 starts in order
+PASS: stage 1 circle color and health
+PASS: brick platform, crown, sockets and energy ornaments float initially
+PASS: airborne circle is invulnerable
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: nine defeats leave circle airborne
+PASS: enemy emerges from center circle
+PASS: tenth defeat initiates animated descent
+PASS: pause freezes circle descent
+PASS: circle lands at exact map center
+PASS: ten kills and no enemies cannot finish an intact circle
+PASS: continuous spawning obeys twelve-enemy live cap
+PASS: circle replenishes enemies after a defeat
+PASS: intact circle spawns beyond the old finite quota
+PASS: basic attacks deal full circle damage
+PASS: skills deal exactly half circle damage
+PASS: circle label and health bar update immediately
+PASS: Q applies reduced circle damage
+PASS: meteor cannot damage circle before landing
+PASS: meteor deals half damage on impact
+PASS: circle destruction clamps health and disables attacks
+PASS: circle destruction makes all surviving enemies disappear
+PASS: destroyed circle stops spawning immediately
+PASS: circle completion cleans all battle objects
+PASS: destroyed circle opens intermission
+PASS: transition retains upgrades and fully heals
+PASS: next stage creates a fresh airborne circle
+PASS: circle campaign stage 2 starts in order
+PASS: stage 2 circle color and health
+PASS: brick platform, crown, sockets and energy ornaments float initially
+PASS: airborne circle is invulnerable
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: enemy emerges from center circle
+PASS: nine defeats leave circle airborne
+PASS: enemy emerges from center circle
+PASS: tenth defeat initiates animated descent
+PASS: pause freezes circle descent
+PASS: circle lands at exact map center
+PASS: ten kills and no enemies cannot finish an intact circle
+PASS: continuous spawning obeys twelve-enemy live cap
+PASS: circle replenishes enemies after a defeat
+PASS: intact circle spawns beyond the old finite quota
+PASS: basic attacks deal full circle damage
+PASS: skills deal exactly half circle damage
+PASS: circle label and health bar update immediately
+PASS: Q applies reduced circle damage
+PASS: meteor cannot damage circle before landing
+PASS: meteor deals half damage on impact
+PASS: circle destruction clamps health and disables attacks
+PASS: circle destruction makes all surviving enemies disappear
+PASS: destroyed circle stops spawning immediately
+PASS: circle completion cleans all battle objects
+PASS: destroying third circle wins campaign
+PASS: restart restores green circle and objective
+PASS: dragon execution deals half max circle health instead of instant destruction
+PASS: twelve frost pulses total one hundred circle damage
+PASS: melee circle damage waits for blade impact
+PASS: hero 0 basic attack hits circle at full damage
+PASS: out-of-range area damage cannot hit circle
+PASS: hero 0 E deals half circle damage
+PASS: ranged circle damage waits for projectile impact
+PASS: hero 1 basic attack hits circle at full damage
+PASS: out-of-range area damage cannot hit circle
+PASS: ranged circle damage waits for projectile impact
+PASS: hero 2 basic attack hits circle at full damage
+PASS: out-of-range area damage cannot hit circle
+PASS: hero 2 E deals half circle damage
 PASS: top view uses an orthographic camera
 PASS: oblique view uses perspective
 PASS: third-person view is closer to the hero
@@ -698,6 +972,9 @@ PASS: difficulty calculations cannot mutate normal-mode base stats
 PASS: easy stage 0 enemy 4 reduces all three stats by 20 percent
 PASS: hard stage 0 enemy 4 applies the specified stage multiplier
 PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 0 enemy 5 reduces all three stats by 20 percent
+PASS: hard stage 0 enemy 5 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
 PASS: easy stage 1 enemy 0 reduces all three stats by 20 percent
 PASS: hard stage 1 enemy 0 applies the specified stage multiplier
 PASS: difficulty calculations cannot mutate normal-mode base stats
@@ -713,6 +990,9 @@ PASS: difficulty calculations cannot mutate normal-mode base stats
 PASS: easy stage 1 enemy 4 reduces all three stats by 20 percent
 PASS: hard stage 1 enemy 4 applies the specified stage multiplier
 PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 1 enemy 5 reduces all three stats by 20 percent
+PASS: hard stage 1 enemy 5 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
 PASS: easy stage 2 enemy 0 reduces all three stats by 20 percent
 PASS: hard stage 2 enemy 0 applies the specified stage multiplier
 PASS: difficulty calculations cannot mutate normal-mode base stats
@@ -727,6 +1007,9 @@ PASS: hard stage 2 enemy 3 applies the specified stage multiplier
 PASS: difficulty calculations cannot mutate normal-mode base stats
 PASS: easy stage 2 enemy 4 reduces all three stats by 20 percent
 PASS: hard stage 2 enemy 4 applies the specified stage multiplier
+PASS: difficulty calculations cannot mutate normal-mode base stats
+PASS: easy stage 2 enemy 5 reduces all three stats by 20 percent
+PASS: hard stage 2 enemy 5 applies the specified stage multiplier
 PASS: difficulty calculations cannot mutate normal-mode base stats
 PASS: difficulty 0 is used by real spawned enemies
 PASS: difficulty 0 remains selected after returning to hero selection
@@ -804,6 +1087,106 @@ PASS: third skill becomes ready after twenty active seconds
 PASS: hero 1 third skill receives retained damage upgrades
 PASS: hero 2 third skill receives retained damage upgrades
 PASS: restart resets third skills, channels and additional armour
+PASS: stage 0 has six enemies in roster
+PASS: stage 0 spawn patterns include every enemy
+PASS: stage 0 arrow projectile keeps its launch direction after hero moves
+PASS: stage 0 snake projectile keeps its launch direction after hero moves
+PASS: stage 0 fireball projectile keeps its launch direction after hero moves
+PASS: stage 0 boss uses ranged fireballs
+PASS: stage 0 boss switches to close claw attack
+PASS: stage 0 charge has a stationary warning phase
+PASS: stage 0 charge is directional and can be dodged
+PASS: stage 0 charge sweeps through and damages hero once
+PASS: stage 1 has six enemies in roster
+PASS: stage 1 spawn patterns include every enemy
+PASS: stage 1 arrow projectile keeps its launch direction after hero moves
+PASS: stage 1 snake projectile keeps its launch direction after hero moves
+PASS: stage 1 fireball projectile keeps its launch direction after hero moves
+PASS: stage 1 boss uses ranged fireballs
+PASS: stage 1 boss switches to close claw attack
+PASS: stage 1 charge has a stationary warning phase
+PASS: stage 1 charge is directional and can be dodged
+PASS: stage 1 charge sweeps through and damages hero once
+PASS: stage 2 has six enemies in roster
+PASS: stage 2 spawn patterns include every enemy
+PASS: stage 2 arrow projectile keeps its launch direction after hero moves
+PASS: terracotta catapult has four wheels and animated throwing arm
+PASS: hamburger-shaped stone snapshots hero location and marks impact zone
+PASS: catapult follows a fixed parabolic arc
+PASS: hero can leave the marked stone impact zone to avoid damage
+PASS: stone deals damage once at its original landing zone
+PASS: pause freezes catapult flight
+PASS: battle cleanup removes catapult projectile and landing marker
+PASS: view 0 left click projects onto the ground correctly
+PASS: view 0 click movement uses normal hero speed
+PASS: view 0 hero arrives and stops without overshooting
+PASS: view 1 left click projects onto the ground correctly
+PASS: view 1 click movement uses normal hero speed
+PASS: view 1 hero arrives and stops without overshooting
+PASS: view 2 left click projects onto the ground correctly
+PASS: view 2 click movement uses normal hero speed
+PASS: view 2 hero arrives and stops without overshooting
+PASS: keyboard movement cancels click target and keeps diagonal speed normalized
+PASS: off-arena click targets are clamped to playable ground
+PASS: a second click replaces the previous destination
+PASS: W key event cancels a click route immediately
+PASS: pause freezes click movement and preserves its destination
+PASS: paused game ignores new movement clicks
+PASS: upgrade selection ignores ground clicks
+PASS: restart clears click movement
+PASS: clicking landed circle chooses a reachable position beside it
+PASS: opposite-side click creates a route around the landed circle
+PASS: hero walks around the circle and reaches the opposite destination
+PASS: route replans when an airborne circle lands in its path
+PASS: stage transitions clear old movement targets
+PASS: returning to hero selection clears movement targets
+PASS: defeat never triggers recruitment scene
+PASS: first-stage victory keeps intermission without final recruitment
+PASS: hero 0 final circle destruction starts the ending
+PASS: ending retains the winning hero and hides battle HUD
+PASS: guardian has detailed red-gold armour, twin backpack rings and leg flames
+PASS: guardian starts high in the sky before dialogue
+PASS: dialogue cannot advance before landing
+PASS: ending animates descent while battle timers stay frozen
+PASS: landing completes before first dialogue appears
+PASS: congratulations address the current winning hero
+PASS: winning hero speaks in the conversation
+PASS: Enter advances to the galaxy team invitation
+PASS: space advances the hero acceptance
+PASS: guardian promises future adventures before settlement
+PASS: finished dialogue restores the victory result screen
+PASS: ending completion is idempotent
+PASS: hero 1 final circle destruction starts the ending
+PASS: ending retains the winning hero and hides battle HUD
+PASS: guardian has detailed red-gold armour, twin backpack rings and leg flames
+PASS: guardian starts high in the sky before dialogue
+PASS: dialogue cannot advance before landing
+PASS: ending animates descent while battle timers stay frozen
+PASS: landing completes before first dialogue appears
+PASS: congratulations address the current winning hero
+PASS: winning hero speaks in the conversation
+PASS: Enter advances to the galaxy team invitation
+PASS: space advances the hero acceptance
+PASS: guardian promises future adventures before settlement
+PASS: finished dialogue restores the victory result screen
+PASS: ending completion is idempotent
+PASS: hero 2 final circle destruction starts the ending
+PASS: ending retains the winning hero and hides battle HUD
+PASS: guardian has detailed red-gold armour, twin backpack rings and leg flames
+PASS: guardian starts high in the sky before dialogue
+PASS: dialogue cannot advance before landing
+PASS: ending animates descent while battle timers stay frozen
+PASS: landing completes before first dialogue appears
+PASS: congratulations address the current winning hero
+PASS: winning hero speaks in the conversation
+PASS: Enter advances to the galaxy team invitation
+PASS: space advances the hero acceptance
+PASS: guardian promises future adventures before settlement
+PASS: finished dialogue restores the victory result screen
+PASS: ending completion is idempotent
+PASS: Escape skips descent safely to victory settlement
+PASS: restart cleans ending actor and dialogue UI
+PASS: returning to hero selection cleans ending scene
 SMOKE TEST COMPLETE
 
 ALL CHECKS PASSED
