@@ -13,7 +13,7 @@ assert validation.count('SMOKE TEST COMPLETE') == 2, 'Source and exported resour
 (dist / 'TEST-REPORT.txt').write_text("""Brick Outbreak MVP 0.7.0 — hero growth, third skills and difficulty
 Validated on Linux x86_64 / Godot 4.6.3.
 
-PASS: 542 source gameplay/model checks and the same 542 checks against exported PCK.
+PASS: 589 source gameplay/model checks and the same 589 checks against exported PCK.
 PASS: ZIP CRC, application plist, executable permissions, x86_64 + arm64 slices.
 PASS: Code signature load commands present (not Apple signature validation).
 PASS: Actual OpenGL new-skill screenshots, menu/difficulty selection and demonstration inspected.
@@ -31,6 +31,8 @@ Model checks cover eighteen themed enemies, articulated quadrupeds and soldiers,
 material feedback, cache isolation, ranged launch/hits and three bestiary pages.
 Click movement checks cover ground picking in all three views, arrival, keyboard
 override, arena bounds, circle detours, landing replans and pause/transition cleanup.
+Ending checks cover all three winning heroes, sky descent, dialogue order,
+recruitment and future teamwork, skip/finish and restart/menu cleanup.
 Existing hero/combat/camera checks retained and updated for the campaign rules.
 See VALIDATION.txt for the complete automated test output.
 

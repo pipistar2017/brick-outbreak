@@ -6,6 +6,9 @@ const ZombieVisual = preload("res://zombie_model.gd")
 const BattleCamera = preload("res://battle_camera.gd")
 const Campaign = preload("res://campaign_data.gd")
 const CampaignEnemy = preload("res://campaign_enemy.gd")
+const VictoryArrival = preload("res://victory_arrival.gd")
+var ending: Node3D
+var ending_preview := false
 const ClickNavigation = preload("res://click_navigation.gd")
 var click_path: Array[Vector3] = []
 const EnemyProjectile = preload("res://enemy_projectile.gd")
@@ -320,6 +323,14 @@ func _ready() -> void:
 	if enemy_preview>=0:
 		gallery_stage = enemy_preview
 		show_zombie_gallery()
+	ending_preview = "--ending-preview" in OS.get_cmdline_user_args()
+	if ending_preview:
+		start_game(0)
+		begin_stage(2)
+		finish(true)
+		ending.advance(3.0)
+		ending.next_line()
+		ending.next_line()
 	if auto_test:
 		start_game(0)
 
@@ -380,6 +391,7 @@ func button(parent: Node, text: String, callback: Callable) -> void:
 	parent.add_child(b)
 
 func show_menu() -> void:
+	clear_ending()
 	click_path.clear()
 	playing = false
 	paused = false
@@ -561,6 +573,7 @@ func make_portrait(parent: Control, index: int, is_zombie := false) -> void:
 	)
 
 func start_game(index: int) -> void:
+	clear_ending()
 	fx.clear()
 	shots.clear()
 	swings.clear()
@@ -1079,6 +1092,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _unhandled_key_input(event: InputEvent) -> void:
+	if is_instance_valid(ending):
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.keycode in [KEY_ENTER,KEY_SPACE]: ending.next_line()
+			elif event.keycode==KEY_ESCAPE: ending.finish_scene()
+			get_viewport().set_input_as_handled()
+		return
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
 	if event.keycode == KEY_ESCAPE and not choosing and is_instance_valid(player):
@@ -1144,11 +1163,48 @@ func upgrade(choice: int) -> void:
 	if travel:
 		begin_stage(stage_index+1)
 
+func clear_ending() -> void:
+	if is_instance_valid(ending):
+		ending.hide()
+		ending.overlay.hide()
+		ending.queue_free()
+	ending = null
+	if is_instance_valid(ui): ui.show()
+
+func begin_ending() -> void:
+	clear_ending()
+	clear_battle()
+	click_path.clear()
+	if is_instance_valid(menu):
+		menu.hide()
+		menu.queue_free()
+	ui.hide()
+	player.position = Vector3(-2.2,0,0)
+	player.rotation.y = -PI/3
+	ending = VictoryArrival.new()
+	world.add_child(ending)
+	ending.setup(HEROES[hero].name)
+	ending.completed.connect(complete_ending)
+	camera.projection = Camera3D.PROJECTION_PERSPECTIVE
+	camera.fov = 48
+	camera.position = Vector3(0,4.5,-11)
+	camera.look_at(Vector3(0,1.65,0))
+
+func complete_ending() -> void:
+	clear_ending()
+	show_result(true)
+
 func finish(won: bool) -> void:
 	playing = false
 	choosing = false
 	paused = false
 	campaign_won = won
+	if won:
+		begin_ending()
+	else:
+		show_result(false)
+
+func show_result(won: bool) -> void:
 	var col := panel("三关净化完成 · 远征胜利" if won else "英雄倒下 · 远征失败", "%s · 第 %d 关 %s · 击败 %d 个敌人 · 等级 %d · %02d:%02d" % [HEROES[hero].name,stage_index+1,Campaign.TITLES[stage_index],kills,level,int(elapsed)/60,int(elapsed)%60])
 	button(col,"再次挑战",start_game.bind(hero))
 	button(col,"更换英雄",show_menu)
@@ -1203,6 +1259,15 @@ func setup_camera_scene(index: int) -> void:
 	update_view_ui()
 
 func _process(delta: float) -> void:
+	if is_instance_valid(ending) and not auto_test:
+		ending.advance(minf(delta,0.05))
+		player.animate(minf(delta,0.05),false)
+		if ending_preview:
+			preview_frames += 1
+			if preview_frames==10:
+				get_viewport().get_texture().get_image().save_png("/workspace/brick-build/victory-arrival.png")
+				get_tree().quit()
+		return
 	if enemy_preview>=0:
 		preview_frames += 1
 		if preview_frames==12:
@@ -2312,6 +2377,70 @@ func click_movement_checks() -> void:
 	show_menu()
 	check(click_path.is_empty(),"returning to hero selection clears movement targets")
 
+func ending_checks() -> void:
+	start_game(0)
+	finish(false)
+	check(not is_instance_valid(ending) and not campaign_won,"defeat never triggers recruitment scene")
+	start_game(0)
+	circle.animate(3,10)
+	hurt(circle_target,10000)
+	check_wave_clear()
+	check(not is_instance_valid(ending) and between_stages,"first-stage victory keeps intermission without final recruitment")
+	for index in range(3):
+		start_game(index)
+		begin_stage(2)
+		var original_player := player
+		circle.animate(3,10)
+		hurt(circle_target,10000)
+		check_wave_clear()
+		check(campaign_won and not playing and is_instance_valid(ending),"hero %d final circle destruction starts the ending" % index)
+		check(player==original_player and hero==index and not ui.visible,"ending retains the winning hero and hides battle HUD")
+		var scene: Node3D = ending
+		check(scene.guardian.decorative_parts>120 and scene.guardian.back_rings.size()==2 and scene.guardian.flames.size()==2,"guardian has detailed red-gold armour, twin backpack rings and leg flames")
+		check(scene.guardian.position.y==12 and scene.page==-1 and scene.next_button.disabled,"guardian starts high in the sky before dialogue")
+		scene.next_line()
+		check(scene.page==-1,"dialogue cannot advance before landing")
+		var previous_time := elapsed
+		auto_test = false
+		_process(0.05)
+		auto_test = true
+		check(elapsed==previous_time and scene.guardian.position.y<12 and scene.guardian.position.y>0,"ending animates descent while battle timers stay frozen")
+		scene.advance(3)
+		check(scene.landed and scene.guardian.position.y==0 and not scene.pillar.visible and scene.page==0,"landing completes before first dialogue appears")
+		check(scene.dialogue.text.contains(HEROES[index].name) and scene.dialogue.text.contains("恭喜"),"congratulations address the current winning hero")
+		scene.next_button.pressed.emit()
+		check(scene.speaker.text==HEROES[index].name,"winning hero speaks in the conversation")
+		var key := InputEventKey.new()
+		key.keycode = KEY_ENTER
+		key.pressed = true
+		_unhandled_key_input(key)
+		check(scene.dialogue.text.contains("欢迎加入银河超级护卫队"),"Enter advances to the galaxy team invitation")
+		key.keycode = KEY_SPACE
+		_unhandled_key_input(key)
+		check(scene.speaker.text==HEROES[index].name and scene.dialogue.text.contains("愿意加入"),"space advances the hero acceptance")
+		scene.next_line()
+		check(scene.dialogue.text.contains("一起并肩作战") and is_instance_valid(ending),"guardian promises future adventures before settlement")
+		scene.next_line()
+		check(not is_instance_valid(ending) and scene.done and ui.visible and campaign_won,"finished dialogue restores the victory result screen")
+		scene.finish_scene()
+		check(campaign_won and not is_instance_valid(ending),"ending completion is idempotent")
+	start_game(1)
+	finish(true)
+	var skipped: Node3D = ending
+	var skip := InputEventKey.new()
+	skip.keycode = KEY_ESCAPE
+	skip.pressed = true
+	_unhandled_key_input(skip)
+	check(skipped.done and not is_instance_valid(ending) and ui.visible,"Escape skips descent safely to victory settlement")
+	start_game(2)
+	finish(true)
+	var old_scene: Node3D = ending
+	start_game(0)
+	check(not is_instance_valid(ending) and old_scene.is_queued_for_deletion() and ui.visible and playing,"restart cleans ending actor and dialogue UI")
+	finish(true)
+	show_menu()
+	check(not is_instance_valid(ending) and ui.visible and not playing,"returning to hero selection cleans ending scene")
+
 func run_smoke_test() -> void:
 	if test_steps>0:
 		return
@@ -2433,5 +2562,6 @@ func run_smoke_test() -> void:
 	third_skill_checks()
 	enemy_attack_checks()
 	click_movement_checks()
+	ending_checks()
 	print("SMOKE TEST COMPLETE")
 	get_tree().quit(0)
