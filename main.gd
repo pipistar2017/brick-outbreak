@@ -6,6 +6,8 @@ const ZombieVisual = preload("res://zombie_model.gd")
 const BattleCamera = preload("res://battle_camera.gd")
 const Campaign = preload("res://campaign_data.gd")
 const CampaignEnemy = preload("res://campaign_enemy.gd")
+const ClickNavigation = preload("res://click_navigation.gd")
+var click_path: Array[Vector3] = []
 const EnemyProjectile = preload("res://enemy_projectile.gd")
 const EnergyCircle = preload("res://energy_circle.gd")
 var circle: Node3D
@@ -378,6 +380,7 @@ func button(parent: Node, text: String, callback: Callable) -> void:
 	parent.add_child(b)
 
 func show_menu() -> void:
+	click_path.clear()
 	playing = false
 	paused = false
 	choosing = false
@@ -416,7 +419,7 @@ func show_menu() -> void:
 		button(body,"选择出战",start_game.bind(i))
 		body.get_child(body.get_child_count()-1).custom_minimum_size = Vector2(352,50)
 	var tip := Label.new()
-	tip.text = "WASD / 方向键移动    Q / E / F 技能    空格闪避    Esc 暂停\n三关连续挑战 · 击败十名敌人使法阵落地，击破法阵后晋级 · 等级与强化继承\n1/2/3 视角 · V 切换 · 右键旋转 · 滚轮缩放 · R 复位"
+	tip.text = "鼠标左键点地移动 / WASD / 方向键    Q / E / F 技能    空格闪避    Esc 暂停\n三关连续挑战 · 击败十名敌人使法阵落地，击破法阵后晋级 · 等级与强化继承\n1/2/3 视角 · V 切换 · 右键旋转 · 滚轮缩放 · R 复位"
 	tip.add_theme_font_size_override("font_size",17)
 	col.add_child(tip)
 	var catalog := Button.new()
@@ -632,6 +635,7 @@ func activate_scenery(index: int) -> void:
 		sunlight.light_color = [Color("ffe1a2"),Color("fff0cd"),Color("e4f3f0")][index]
 
 func clear_battle() -> void:
+	click_path.clear()
 	if is_instance_valid(circle):
 		circle.hide()
 		circle.queue_free()
@@ -1062,7 +1066,12 @@ func _input(event: InputEvent) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not playing or choosing or not event is InputEventMouseButton:
 		return
-	if event.button_index==MOUSE_BUTTON_RIGHT and event.pressed:
+	if event.button_index==MOUSE_BUTTON_LEFT and event.pressed:
+		var point: Variant = ClickNavigation.ground_point(camera,event.position)
+		if point is Vector3:
+			set_click_destination(point)
+		get_viewport().set_input_as_handled()
+	elif event.button_index==MOUSE_BUTTON_RIGHT and event.pressed:
 		view_drag = true
 		get_viewport().set_input_as_handled()
 	elif event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP,MOUSE_BUTTON_WHEEL_DOWN]:
@@ -1084,6 +1093,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	if not playing or choosing:
 		return
+	if event.physical_keycode in [KEY_W,KEY_A,KEY_S,KEY_D,KEY_UP,KEY_DOWN,KEY_LEFT,KEY_RIGHT] or event.keycode in [KEY_W,KEY_A,KEY_S,KEY_D,KEY_UP,KEY_DOWN,KEY_LEFT,KEY_RIGHT]:
+		click_path.clear()
 	if event.keycode in [KEY_1,KEY_2,KEY_3]:
 		set_view(event.keycode-KEY_1)
 		return
@@ -1100,6 +1111,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if event.keycode == KEY_F:
 		skill(2)
 	if event.keycode == KEY_SPACE and dash_clock<=0:
+		click_path.clear()
 		dash_clock = 3
 		invuln = 0.45
 		ring(player.position,1.2,HEROES[hero].color)
@@ -1392,6 +1404,36 @@ func update_enemy_charge(e: Dictionary, delta: float) -> bool:
 		damage_player(e.data.damage)
 	return true
 
+func circle_blocks_movement() -> bool:
+	return is_instance_valid(circle) and circle.landed and not circle_destroyed
+
+func set_click_destination(point: Vector3) -> void:
+	var blocked := circle_blocks_movement()
+	var goal := ClickNavigation.destination(point,player.position,blocked)
+	click_path = ClickNavigation.route(player.position,goal,blocked)
+	if not click_path.is_empty():
+		ring(goal,0.35,HEROES[hero].color)
+
+func movement_input(axes: Vector2, delta: float) -> Vector3:
+	if axes.length_squared()>0:
+		click_path.clear()
+		return view_rig.movement_axis(axes)
+	if click_path.is_empty() or delta<=0: return Vector3.ZERO
+	if circle_blocks_movement() and player.position.length()<2.65:
+		player.position = player.position.normalized()*2.65 if player.position.length()>0.01 else Vector3.BACK*2.65
+	# Replan if the previously airborne circle lands across the current route.
+	if circle_blocks_movement() and not ClickNavigation.clear_segment(player.position,click_path[0]):
+		var goal := ClickNavigation.destination(click_path.back(),player.position,true)
+		click_path = ClickNavigation.route(player.position,goal,true)
+		if click_path.is_empty(): return Vector3.ZERO
+	while not click_path.is_empty() and player.position.distance_to(click_path[0])<=0.01:
+		click_path.pop_front()
+	if click_path.is_empty(): return Vector3.ZERO
+	var offset := click_path[0]-player.position
+	offset.y = 0
+	# Clamp the last step to the target rather than overshooting and oscillating.
+	return offset.normalized()*minf(1,offset.length()/(5.5*delta))
+
 func step(delta: float) -> void:
 	elapsed += delta
 	attack_clock -= delta
@@ -1402,7 +1444,7 @@ func step(delta: float) -> void:
 	dash_clock = maxf(0,dash_clock-delta)
 	buff = maxf(0,buff-delta)
 	var axes := Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP)))
-	var movement: Vector3 = view_rig.movement_axis(axes)
+	var movement := movement_input(axes,delta)
 	player.animate(delta,movement.length()>0)
 	if movement.length()>0:
 		direction = movement.normalized()
@@ -1505,7 +1547,7 @@ func step(delta: float) -> void:
 		else:
 			skill_buttons[i].modulate = Color.WHITE
 		skill_buttons[i].disabled = cooldown>0
-	status.text = "Q %s  %s     E %s  %s     F %s  %s\nWASD 移动 · 空格闪避 · 击杀经验 %d / %d · 打破法阵使敌军消散后晋级" % [names[0],"就绪" if q_clock<=0 else "%.1fs" % q_clock,names[1],"就绪" if e_clock<=0 else "%.1fs" % e_clock,names[2],"就绪" if w_clock<=0 else "%.1fs" % w_clock,xp,level*8]
+	status.text = "Q %s  %s     E %s  %s     F %s  %s\n左键点地 / WASD 移动 · 空格闪避 · 击杀经验 %d / %d · 打破法阵使敌军消散后晋级" % [names[0],"就绪" if q_clock<=0 else "%.1fs" % q_clock,names[1],"就绪" if e_clock<=0 else "%.1fs" % e_clock,names[2],"就绪" if w_clock<=0 else "%.1fs" % w_clock,xp,level*8]
 
 func check(condition: bool, description: String) -> void:
 	if not condition:
@@ -2188,6 +2230,88 @@ func enemy_attack_checks() -> void:
 			check(marker.is_queued_for_deletion() and bullets.is_empty(),"battle cleanup removes catapult projectile and landing marker")
 	playing = false
 
+func click_movement_checks() -> void:
+	start_game(0)
+	clear_battle()
+	spawn_clock = 100
+	attack_clock = 100
+	for mode in range(3):
+		player.position = Vector3.ZERO
+		view_rig.set_mode(mode,player.position,true)
+		var goal := Vector3(2,0,-3)
+		var click := InputEventMouseButton.new()
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.pressed = true
+		click.position = camera.unproject_position(goal)
+		_unhandled_input(click)
+		check(not click_path.is_empty() and click_path.back().distance_to(goal)<0.001,"view %d left click projects onto the ground correctly" % mode)
+		var before := player.position
+		step(0.05)
+		check(is_equal_approx(player.position.distance_to(before),0.275),"view %d click movement uses normal hero speed" % mode)
+		for i in range(30): step(0.05)
+		check(player.position.distance_to(goal)<0.001 and click_path.is_empty(),"view %d hero arrives and stops without overshooting" % mode)
+	set_click_destination(Vector3(5,0,5))
+	var axis := movement_input(Vector2(1,1),0.1)
+	check(click_path.is_empty() and is_equal_approx(axis.length(),1),"keyboard movement cancels click target and keeps diagonal speed normalized")
+	set_click_destination(Vector3(100,20,-100))
+	check(click_path.back()==Vector3(21,0,-21),"off-arena click targets are clamped to playable ground")
+	set_click_destination(Vector3(1,0,1))
+	set_click_destination(Vector3(-4,0,4))
+	check(click_path.back()==Vector3(-4,0,4),"a second click replaces the previous destination")
+	var key := InputEventKey.new()
+	key.keycode = KEY_W
+	key.pressed = true
+	_unhandled_key_input(key)
+	check(click_path.is_empty(),"W key event cancels a click route immediately")
+	set_click_destination(Vector3(6,0,0))
+	var position_before := player.position
+	playing = false
+	auto_test = false
+	_process(0.1)
+	auto_test = true
+	check(player.position==position_before and not click_path.is_empty(),"pause freezes click movement and preserves its destination")
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	click.position = Vector2(100,100)
+	var previous_goal: Vector3 = click_path.back()
+	_unhandled_input(click)
+	check(click_path.back()==previous_goal,"paused game ignores new movement clicks")
+	playing = true
+	choosing = true
+	_unhandled_input(click)
+	check(click_path.back()==previous_goal,"upgrade selection ignores ground clicks")
+	choosing = false
+	start_game(0)
+	check(click_path.is_empty(),"restart clears click movement")
+	spawn_clock = 100
+	attack_clock = 100
+	circle.animate(3,10)
+	player.position = Vector3(0,0,6)
+	set_click_destination(Vector3.ZERO)
+	check(click_path.back().is_equal_approx(Vector3(0,0,2.8)),"clicking landed circle chooses a reachable position beside it")
+	set_click_destination(Vector3(0,0,-6))
+	check(click_path.size()>1,"opposite-side click creates a route around the landed circle")
+	var safe := true
+	for i in range(130):
+		step(0.05)
+		safe = safe and player.position.length()>=2.649
+	check(safe and player.position.distance_to(Vector3(0,0,-6))<0.01 and click_path.is_empty(),"hero walks around the circle and reaches the opposite destination")
+	start_game(0)
+	spawn_clock = 100
+	attack_clock = 100
+	player.position = Vector3(0,0,6)
+	set_click_destination(Vector3(0,0,-6))
+	circle.animate(3,10)
+	for i in range(130): step(0.05)
+	check(player.position.distance_to(Vector3(0,0,-6))<0.01,"route replans when an airborne circle lands in its path")
+	set_click_destination(Vector3(5,0,0))
+	begin_stage(1)
+	check(click_path.is_empty(),"stage transitions clear old movement targets")
+	set_click_destination(Vector3(5,0,0))
+	show_menu()
+	check(click_path.is_empty(),"returning to hero selection clears movement targets")
+
 func run_smoke_test() -> void:
 	if test_steps>0:
 		return
@@ -2308,5 +2432,6 @@ func run_smoke_test() -> void:
 	balance_checks()
 	third_skill_checks()
 	enemy_attack_checks()
+	click_movement_checks()
 	print("SMOKE TEST COMPLETE")
 	get_tree().quit(0)
