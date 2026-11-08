@@ -6,6 +6,12 @@ const ZombieVisual = preload("res://zombie_model.gd")
 const BattleCamera = preload("res://battle_camera.gd")
 const Campaign = preload("res://campaign_data.gd")
 const CampaignEnemy = preload("res://campaign_enemy.gd")
+const EnergyCircle = preload("res://energy_circle.gd")
+var circle: Node3D
+var circle_target: Dictionary = {}
+var circle_destroyed := false
+var circle_preview := -1
+
 const StageWorld = preload("res://stage_world.gd")
 var stage_index := 0
 var wave_index := 0
@@ -292,6 +298,18 @@ func _ready() -> void:
 	for i in range(3):
 		if ("--skill-preview="+str(i)) in OS.get_cmdline_user_args(): skill_preview = i
 	if skill_preview>=0: setup_ultimate_preview(skill_preview)
+	for i in range(3):
+		if ("--circle-preview="+str(i)) in OS.get_cmdline_user_args(): circle_preview = i
+	if circle_preview>=0:
+		start_game(0)
+		begin_stage(circle_preview)
+		circle.animate(3,10)
+		circle.set_health(circle_target.hp,EnergyCircle.HEALTH[circle_preview])
+		player.hide()
+		ui.hide()
+		camera.position = Vector3(6,5.5,7)
+		camera.look_at(Vector3(0,1.1,0))
+		playing = false
 	if auto_test:
 		start_game(0)
 
@@ -390,7 +408,7 @@ func show_menu() -> void:
 		button(body,"选择出战",start_game.bind(i))
 		body.get_child(body.get_child_count()-1).custom_minimum_size = Vector2(352,50)
 	var tip := Label.new()
-	tip.text = "WASD / 方向键移动    Q / E / F 技能    空格闪避    Esc 暂停\n三关连续挑战 · 每关三波，清空全部敌人后晋级 · 等级与强化继承\n1/2/3 视角 · V 切换 · 右键旋转 · 滚轮缩放 · R 复位"
+	tip.text = "WASD / 方向键移动    Q / E / F 技能    空格闪避    Esc 暂停\n三关连续挑战 · 击败十名敌人使法阵落地，击破法阵后晋级 · 等级与强化继承\n1/2/3 视角 · V 切换 · 右键旋转 · 滚轮缩放 · R 复位"
 	tip.add_theme_font_size_override("font_size",17)
 	col.add_child(tip)
 	var catalog := Button.new()
@@ -605,6 +623,12 @@ func activate_scenery(index: int) -> void:
 		sunlight.light_color = [Color("ffe1a2"),Color("fff0cd"),Color("e4f3f0")][index]
 
 func clear_battle() -> void:
+	if is_instance_valid(circle):
+		circle.hide()
+		circle.queue_free()
+	circle = null
+	if not circle_target.is_empty(): circle_target.dead = true
+	circle_target = {}
 	for e in enemies:
 		e.node.hide()
 		e.node.queue_free()
@@ -629,6 +653,11 @@ func begin_stage(index: int) -> void:
 	stage_spawned = 0
 	stage_kills = 0
 	stage_cleared = false
+	circle_destroyed = false
+	circle = EnergyCircle.new()
+	circle.build(stage_index)
+	world.add_child(circle)
+	circle_target = {"node":circle,"hp":EnergyCircle.HEALTH[stage_index],"dead":false,"circle":true,"slow":0.0}
 	between_stages = false
 	boss_spawned = false
 	choosing = false
@@ -651,43 +680,61 @@ func begin_stage(index: int) -> void:
 	view_drag = false
 	view_rig.recenter(player.position,true)
 	update_view_ui()
-	announce("第 %d 关 · %s" % [stage_index+1,Campaign.TITLES[stage_index]],Campaign.SUBTITLES[stage_index]+" · 清空三波敌人",Campaign.COLORS[stage_index])
+	announce("第 %d 关 · %s" % [stage_index+1,Campaign.TITLES[stage_index]],"击败十名敌人使法阵落地，再将其击破",Campaign.COLORS[stage_index])
 	banner_time = 3.0
 
 func update_campaign_spawns(delta: float) -> void:
-	if stage_cleared: return
+	if stage_cleared or circle_destroyed: return
 	spawn_clock -= delta
+	if spawn_clock>0 or enemies.filter(func(e): return not e.get("dead",false)).size()>=12: return
 	var queue: Array = Campaign.WAVES[stage_index][wave_index]
-	if spawn_clock<=0 and wave_spawned<queue.size() and enemies.size()<12:
-		var kind: int = queue[wave_spawned]
-		spawn_enemy(kind)
-		wave_spawned += 1
-		stage_spawned += 1
-		spawn_clock = 0.85 if kind!=4 else 2.0
-		if kind==4:
-			boss_spawned = true
-			announce("关底首领 · "+Campaign.ENEMY_NAMES[stage_index][4],"击败首领并清除剩余敌人",Campaign.COLORS[stage_index])
+	var kind: int = queue[wave_spawned]
+	spawn_enemy(kind)
+	wave_spawned += 1
+	stage_spawned += 1
+	if kind==4: boss_spawned = true
+	if wave_spawned>=queue.size():
+		wave_spawned = 0
+		wave_index = (wave_index+1)%3
+	spawn_clock = 1.25
 
 func check_wave_clear() -> void:
-	if stage_cleared or not playing or choosing: return
-	if wave_spawned<Campaign.WAVES[stage_index][wave_index].size() or not enemies.is_empty(): return
-	if wave_index<2:
-		wave_index += 1
-		wave_spawned = 0
-		spawn_clock = 2.5
-		announce("第 %d 波 · 来袭" % [wave_index+1],"清理兽群" if stage_index==0 else "守住阵地，清空敌军",Campaign.COLORS[stage_index])
+	if stage_cleared or not playing or choosing or not circle_destroyed: return
+	stage_cleared = true
+	clear_battle()
+	if stage_index==2:
+		finish(true)
 	else:
-		stage_cleared = true
-		clear_battle()
-		if stage_index==2:
-			finish(true)
-		else:
-			between_stages = true
-			choosing = true
-			var col := panel("%s · 已净化" % Campaign.TITLES[stage_index],"本关 %d / %d 已清除 · 选择强化后前往 %s\n保留等级与强化，恢复全部血量并刷新技能。" % [stage_kills,Campaign.total(stage_index),Campaign.TITLES[stage_index+1]])
-			button(col,"强化攻击 +20%   →   进入下一关",upgrade.bind(0))
-			button(col,"强化装甲 +40 血量上限   →   进入下一关",upgrade.bind(1))
-			button(col,"战地补给 +10% 伤害   →   进入下一关",travel_supply)
+		between_stages = true
+		choosing = true
+		var col := panel("%s · 法阵已击破" % Campaign.TITLES[stage_index],"法阵崩解，敌军消散 · 选择强化后前往 %s\n保留等级与强化，恢复全部血量并刷新技能。" % Campaign.TITLES[stage_index+1])
+		button(col,"强化攻击 +20%   →   进入下一关",upgrade.bind(0))
+		button(col,"强化装甲 +40 血量上限   →   进入下一关",upgrade.bind(1))
+		button(col,"战地补给 +10% 伤害   →   进入下一关",travel_supply)
+
+func attack_targets() -> Array:
+	var targets := enemies.duplicate()
+	if is_instance_valid(circle) and circle.landed and not circle_destroyed and not circle_target.is_empty():
+		targets.append(circle_target)
+	return targets
+
+func hurt_circle(amount: float, from_skill: bool) -> void:
+	if not is_instance_valid(circle) or not circle.landed or circle_destroyed: return
+	var damage := amount*(0.5 if from_skill else 1.0)
+	circle_target.hp = maxf(0,circle_target.hp-damage)
+	circle.set_health(circle_target.hp,EnergyCircle.HEALTH[stage_index])
+	fx.impact(Vector3(0,1,0),circle.tint,true)
+	fx.number(Vector3(0,2,0),damage,Color.WHITE,true)
+	if circle_target.hp<=0:
+		circle_destroyed = true
+		circle_target.dead = true
+		circle.hide()
+		# Resolve the transition after all attack/projectile iterations have finished.
+		for e in enemies:
+			e.dead = true
+			e.node.hide()
+			e.node.queue_free()
+		announce("能量法阵已击破","敌军消散 · 本关净化完成",circle.tint)
 
 func travel_supply() -> void:
 	if not between_stages: return
@@ -718,10 +765,12 @@ func spawn_enemy(kind: int) -> Dictionary:
 	node.animate(0,false)
 	node.scale = Vector3.ONE*data.scale
 	var angle := randf()*TAU
-	node.position = player.position+Vector3(cos(angle),0,sin(angle))*17
+	node.position = Vector3(cos(angle)*2.5,0,sin(angle)*2.5)
 	node.position.x = clampf(node.position.x,-21,21)
 	node.position.z = clampf(node.position.z,-21,21)
 	world.add_child(node)
+	if is_instance_valid(circle):
+		fx.bolt(circle.position+Vector3(0,1.8,0),node.position+Vector3(0,0.5,0),circle.tint,0.35)
 	var health_bar := MeshInstance3D.new()
 	var health_quad := QuadMesh.new()
 	health_quad.size = Vector2(0.8,0.09)
@@ -752,7 +801,10 @@ func flash_enemy(e: Dictionary) -> void:
 	e.flash = 0.12
 	e.node.set_overlay(white_flash)
 
-func hurt(e: Dictionary, amount: float, heavy := false, frost := false) -> void:
+func hurt(e: Dictionary, amount: float, heavy := false, frost := false, from_skill := false) -> void:
+	if e.get("circle",false):
+		hurt_circle(amount,from_skill)
+		return
 	if e.get("dead",false):
 		return
 	var pos: Vector3 = e.node.position
@@ -773,7 +825,8 @@ func hurt(e: Dictionary, amount: float, heavy := false, frost := false) -> void:
 func perform_attack(target: Dictionary) -> void:
 	if target.get("dead",false):
 		return
-	player.look_at(Vector3(target.node.position.x,0,target.node.position.z))
+	var aim := Vector3(target.node.position.x,0,target.node.position.z)
+	if player.position.distance_to(aim)>0.01: player.look_at(aim)
 	player.attack()
 	if hero==0:
 		swings.append({"delay":0.10,"damage":HEROES[hero].damage*damage_mult})
@@ -795,7 +848,7 @@ func update_swings(delta: float) -> void:
 		if swing.delay<=0:
 			fx.slash(player.position,player.rotation.y,3.5,HEROES[0].color)
 			fx.wave(player.position,3.5,HEROES[0].color,0.25,0.8)
-			for e in enemies:
+			for e in attack_targets():
 				if not e.get("dead",false) and e.node.position.distance_to(player.position)<3.5:
 					hurt(e,swing.damage)
 			swings.remove_at(i)
@@ -835,11 +888,11 @@ func damage_player(amount: float) -> void:
 		finish(false)
 
 func area_damage(radius: float, amount: float, slow := false, heavy := true) -> void:
-	for e in enemies:
+	for e in attack_targets():
 		if not e.get("dead",false) and e.node.position.distance_to(player.position)<=radius:
 			if slow:
 				e.slow = maxf(e.slow,3.0)
-			hurt(e,amount*damage_mult,heavy,slow)
+			hurt(e,amount*damage_mult,heavy,slow,true)
 
 func skill(which: int) -> void:
 	if not playing or choosing or which<0 or which>2: return
@@ -907,9 +960,9 @@ func cast_third_skill() -> void:
 	heading = heading.normalized()
 	if hero==0:
 		fx.dragon_cut(origin,heading,DRAGON_RANGE)
-		for e in enemies:
+		for e in attack_targets():
 			if not e.get("dead",false) and in_line(e.node.position,origin,heading,DRAGON_RANGE,DRAGON_HALF_WIDTH):
-				hurt(e,maxf(e.hp,1),true)
+				hurt(e,EnergyCircle.HEALTH[stage_index]*damage_mult if e.get("circle",false) else maxf(e.hp,1),true,false,true)
 		announce("F · 绝气斩","大刀下斩 · 前方龙形剑气直线清敌",HEROES[0].color)
 	elif hero==1:
 		fx.meteor_rain(origin,10.0,0.65)
@@ -943,16 +996,16 @@ func update_third_skills(delta: float) -> void:
 				var angle := n*2.39996
 				var radius := sqrt(float(n)/12)*9.0
 				fx.impact(job.origin+Vector3(sin(angle)*radius,0,cos(angle)*radius),Color("ffb669"),true)
-			for e in enemies:
+			for e in attack_targets():
 				if not e.get("dead",false) and e.node.position.distance_to(job.origin)<=10.0:
-					hurt(e,job.damage,true)
+					hurt(e,job.damage,true,false,true)
 		else:
-			for e in enemies:
+			for e in attack_targets():
 				if e.get("dead",false) or e.node.position.distance_to(job.origin)>FROST_RADIUS: continue
 				var hit := false
 				for side in range(4):
 					hit = hit or in_line(e.node.position,job.origin,job.heading.rotated(Vector3.UP,side*PI/2),FROST_RADIUS,FROST_HALF_WIDTH)
-				if hit: hurt(e,job.damage,false,true)
+				if hit: hurt(e,job.damage,false,true,true)
 		ultimate_jobs.remove_at(i)
 	if frost_age>=0:
 		frost_age += delta
@@ -1128,6 +1181,12 @@ func setup_camera_scene(index: int) -> void:
 	update_view_ui()
 
 func _process(delta: float) -> void:
+	if circle_preview>=0:
+		preview_frames += 1
+		if preview_frames==8:
+			get_viewport().get_texture().get_image().save_png("/workspace/brick-build/circle-%d.png" % circle_preview)
+			get_tree().quit()
+		return
 	delta = minf(delta,0.05)
 	if ultimate_demo:
 		var frame := ultimate_demo_tick%210
@@ -1253,7 +1312,12 @@ func step(delta: float) -> void:
 		player.rotation.y = atan2(-direction.x,-direction.z)
 	player.position.x = clampf(player.position.x,-21,21)
 	player.position.z = clampf(player.position.z,-21,21)
+	if is_instance_valid(circle) and circle.landed and not circle_destroyed and player.position.length()<2.65:
+		player.position = player.position.normalized()*2.65 if player.position.length()>0.01 else Vector3(0,0,2.65)
 	view_rig.update(player.position,delta)
+	if is_instance_valid(circle) and not circle_destroyed:
+		circle.animate(delta,stage_kills)
+		circle.set_health(circle_target.hp,EnergyCircle.HEALTH[stage_index])
 	update_campaign_spawns(delta)
 	var nearest: Dictionary = {}
 	var nearest_distance := 1000.0
@@ -1309,12 +1373,17 @@ func step(delta: float) -> void:
 				bullets.append({"node":b,"velocity":aim*6,"time":3.0,"damage":data.damage})
 			else:
 				damage_player(data.damage)
+	if is_instance_valid(circle) and circle.landed and not circle_destroyed:
+		var circle_distance := player.position.length()
+		if circle_distance<nearest_distance:
+			nearest = circle_target
+			nearest_distance = circle_distance
 	if not nearest.is_empty() and attack_clock<=0 and nearest_distance<(3.5 if hero==0 else 12.0):
 		attack_clock = HEROES[hero].rate*(0.6 if buff>0 else 1.0)
 		perform_attack(nearest)
 	update_swings(delta)
 	update_shots(delta)
-	update_third_skills(delta)
+	if not circle_destroyed: update_third_skills(delta)
 	fx.update(delta)
 	shake_strength = move_toward(shake_strength,0,delta*0.75)
 	camera.position += Vector3(sin(elapsed*71),sin(elapsed*53),0)*shake_strength
@@ -1347,7 +1416,7 @@ func step(delta: float) -> void:
 		button(col,"重整旗鼓    /    恢复 100 血量，立即刷新技能",upgrade.bind(2))
 	hp_bar.max_value = max_hp
 	hp_bar.value = hp
-	stage_hud.text = "%s · 第 %d / 3 关 · %s    |    第 %d / 3 波    |    净化 %d / %d" % [Campaign.DIFFICULTIES[difficulty],stage_index+1,Campaign.TITLES[stage_index],wave_index+1,stage_kills,Campaign.total(stage_index)]
+	stage_hud.text = "%s · 第 %d / 3 关 · %s | 击败 %d / 10 · %s" % [Campaign.DIFFICULTIES[difficulty],stage_index+1,Campaign.TITLES[stage_index],mini(stage_kills,10),"击破中心法阵" if stage_kills>=10 else "法阵悬空"]
 	hud.text = "%s    %d / %d 血量                 %02d:%02d    /    击败 %d    /    等级 %d" % [HEROES[hero].name,maxi(0,int(hp)),int(max_hp),int(elapsed)/60,int(elapsed)%60,kills,level]
 	var names: Array = SKILL_NAMES[hero]
 	for i in range(3):
@@ -1361,7 +1430,7 @@ func step(delta: float) -> void:
 		else:
 			skill_buttons[i].modulate = Color.WHITE
 		skill_buttons[i].disabled = cooldown>0
-	status.text = "Q %s  %s     E %s  %s     F %s  %s\nWASD 移动 · 空格闪避 · 击杀经验 %d / %d · 清空本关全部敌人后晋级" % [names[0],"就绪" if q_clock<=0 else "%.1fs" % q_clock,names[1],"就绪" if e_clock<=0 else "%.1fs" % e_clock,names[2],"就绪" if w_clock<=0 else "%.1fs" % w_clock,xp,level*8]
+	status.text = "Q %s  %s     E %s  %s     F %s  %s\nWASD 移动 · 空格闪避 · 击杀经验 %d / %d · 打破法阵使敌军消散后晋级" % [names[0],"就绪" if q_clock<=0 else "%.1fs" % q_clock,names[1],"就绪" if e_clock<=0 else "%.1fs" % e_clock,names[2],"就绪" if w_clock<=0 else "%.1fs" % w_clock,xp,level*8]
 
 func check(condition: bool, description: String) -> void:
 	if not condition:
@@ -1558,72 +1627,125 @@ func campaign_visual_checks() -> void:
 
 func campaign_flow_checks() -> void:
 	start_game(1)
-	var total_kills := 0
 	for stage in range(3):
-		check(stage_index==stage and playing and not choosing,"stage %d begins in the required campaign order" % stage)
-		var visible_maps := 0
-		for scene in stage_scenes:
-			if is_instance_valid(scene) and scene.visible: visible_maps += 1
-		check(visible_maps==1 and stage_scenes[stage].visible and stage_scenes[stage].landmark_count>=3,"stage %d shows only its map and themed landmarks" % stage)
-		for wave in range(3):
-			attack_clock = 100
+		check(stage_index==stage and playing and not choosing,"circle campaign stage %d starts in order" % stage)
+		check(circle.tint==EnergyCircle.COLORS[stage] and circle_target.hp==EnergyCircle.HEALTH[stage],"stage %d circle color and health" % stage)
+		check(circle.parts>100 and circle.position.y>4 and not circle.landed,"brick platform, crown, sockets and energy ornaments float initially")
+		hurt(circle_target,10000,true,false,true)
+		check(circle_target.hp==EnergyCircle.HEALTH[stage],"airborne circle is invulnerable")
+		for i in range(10):
 			spawn_clock = 0
-			var queue: Array = Campaign.WAVES[stage][wave]
-			for i in range(queue.size()): update_campaign_spawns(3)
-			check(enemies.size()==queue.size() and wave_spawned==queue.size(),"stage %d wave %d spawns its exact finite quota" % [stage,wave])
-			var before := enemies.size()
-			for i in range(8): update_campaign_spawns(10)
-			check(enemies.size()==before,"stage %d wave %d cannot endlessly respawn" % [stage,wave])
-			if wave==2:
-				var boss: Dictionary = enemies.back()
-				check(boss.kind==4 and boss_spawned,"stage %d boss arrives only in the final wave" % stage)
-				hurt(boss,boss.hp+1)
-				step(0.001)
-				check(not choosing and playing and not stage_cleared,"stage %d boss death cannot ignore surviving enemies" % stage)
-			for e in enemies: hurt(e,e.hp+1)
-			step(0.001)
-			if wave<2:
-				check(wave_index==wave+1 and wave_spawned==0 and spawn_clock>0,"stage %d advances to wave %d only after clearing enemies" % [stage,wave+1])
-			total_kills += queue.size()
-		check(stage_kills==Campaign.total(stage) and stage_spawned==Campaign.total(stage),"stage %d completes its full required enemy count" % stage)
+			update_campaign_spawns(0.01)
+			var e: Dictionary = enemies.back()
+			check(Vector2(e.node.position.x,e.node.position.z).length()<3,"enemy emerges from center circle")
+			hurt(e,e.hp+1)
+			enemies.erase(e)
+			circle.animate(0.01,stage_kills)
+			if i==8: check(not circle.landing,"nine defeats leave circle airborne")
+		check(circle.landing and not circle.landed,"tenth defeat initiates animated descent")
+		var height: float = circle.position.y
+		auto_test = false
+		playing = false
+		_process(0.05)
+		playing = true
+		auto_test = true
+		check(circle.position.y==height,"pause freezes circle descent")
+		circle.animate(3,stage_kills)
+		check(circle.landed and circle.position==Vector3.ZERO,"circle lands at exact map center")
+		check_wave_clear()
+		check(not stage_cleared and playing,"ten kills and no enemies cannot finish an intact circle")
+		for i in range(15):
+			spawn_clock = 0
+			update_campaign_spawns(1)
+		check(enemies.size()==12,"continuous spawning obeys twelve-enemy live cap")
+		var old_count := stage_spawned
+		var dead: Dictionary = enemies.pop_back()
+		hurt(dead,dead.hp+1)
+		spawn_clock = 0
+		update_campaign_spawns(1)
+		check(stage_spawned==old_count+1 and enemies.size()==12,"circle replenishes enemies after a defeat")
+		for i in range(40):
+			for enemy in enemies: hurt(enemy,enemy.hp+1)
+			enemies.clear()
+			spawn_clock = 0
+			update_campaign_spawns(1)
+		check(stage_spawned>Campaign.total(stage) and not circle_destroyed and not stage_cleared,"intact circle spawns beyond the old finite quota")
+		var health_before: float = circle_target.hp
+		hurt(circle_target,100)
+		check(circle_target.hp==health_before-100,"basic attacks deal full circle damage")
+		hurt(circle_target,100,true,false,true)
+		check(circle_target.hp==health_before-150,"skills deal exactly half circle damage")
+		check(circle.health.text.contains(str(int(circle_target.hp))) and is_equal_approx(circle.bar.scale.x,circle_target.hp/EnergyCircle.HEALTH[stage]),"circle label and health bar update immediately")
+		# Actual Q range and damage path.
+		player.position = Vector3(0,0,2)
+		q_clock = 0
+		health_before = circle_target.hp
+		skill(0)
+		check(is_equal_approx(circle_target.hp,health_before-HEROES[hero].q_damage*damage_mult*0.5),"Q applies reduced circle damage")
+		# The ranger meteor must land before dealing half of its upgraded damage.
+		w_clock = 0
+		health_before = circle_target.hp
+		skill(2)
+		update_third_skills(0.64)
+		check(circle_target.hp==health_before,"meteor cannot damage circle before landing")
+		update_third_skills(0.02)
+		check(is_equal_approx(circle_target.hp,health_before-90*damage_mult),"meteor deals half damage on impact")
+		hurt(circle_target,10000)
+		check(circle_destroyed and circle_target.dead and circle_target.hp==0,"circle destruction clamps health and disables attacks")
+		check(enemies.all(func(e): return e.get("dead",false) and not e.node.visible),"circle destruction makes all surviving enemies disappear")
+		old_count = stage_spawned
+		update_campaign_spawns(10)
+		check(stage_spawned==old_count,"destroyed circle stops spawning immediately")
+		check_wave_clear()
+		check(stage_cleared and enemies.is_empty() and shots.is_empty() and bullets.is_empty(),"circle completion cleans all battle objects")
 		if stage<2:
-			check(choosing and between_stages and not campaign_won,"stage %d opens the intermission upgrade instead of final victory" % stage)
-			var old_stage := stage_index
-			var old_elapsed := elapsed
-			auto_test = false
-			_process(0.5)
-			auto_test = true
-			check(stage_index==old_stage and elapsed==old_elapsed,"intermission freezes battle and waits for an upgrade")
-			# Leave hostile and friendly flight behind; transition must remove all of it.
-			var projectile := Node3D.new()
-			world.add_child(projectile)
-			bullets.append({"node":projectile})
-			shots.append({"unused":true})
-			swings.append({"unused":true})
-			fx.wave(Vector3.ZERO,2,Color.WHITE,1)
-			hp = 1
-			q_clock = 20
-			e_clock = 20
-			xp = 3
-			level = 3
+			check(between_stages and choosing,"destroyed circle opens intermission")
 			var old_damage := damage_mult
-			var old_max := max_hp
-			upgrade(stage)
-			check(hp==max_hp and q_clock==0 and e_clock==0 and dash_clock==0,"stage transition fully heals and refreshes skills")
-			check(kills==total_kills and xp==3 and level==3 and damage_mult>=old_damage and max_hp>=old_max,"stage transition preserves hero progress and upgrades")
-			check(enemies.is_empty() and bullets.is_empty() and shots.is_empty() and swings.is_empty() and fx.active.is_empty(),"stage transition removes previous enemies, projectiles and effects")
-			check(player.position==Vector3.ZERO and stage_kills==0 and stage_spawned==0,"new stage resets local objectives and safely positions the hero")
-	check(campaign_won and not playing and stage_index==2 and kills==84,"all 84 enemies across three cleared stages produce the final victory")
+			level = 3
+			xp = 3
+			upgrade(0)
+			check(level==3 and xp==3 and damage_mult>old_damage and hp==max_hp,"transition retains upgrades and fully heals")
+			check(not circle_destroyed and stage_kills==0 and not circle.landed,"next stage creates a fresh airborne circle")
+	check(campaign_won and not playing and stage_index==2,"destroying third circle wins campaign")
+	start_game(0)
+	check(stage_index==0 and circle_target.hp==1000 and stage_kills==0,"restart restores green circle and objective")
+	circle.animate(3,10)
+	player.position = Vector3(0,0,2)
+	player.rotation.y = 0
+	var before: float = circle_target.hp
+	cast_third_skill()
+	check(circle_target.hp==before-500,"dragon execution deals half max circle health instead of instant destruction")
 	start_game(2)
-	check(stage_index==0 and wave_index==0 and stage_spawned==0 and kills==0 and not campaign_won and damage_mult==1 and level==1,"restart returns to the savanna and clears campaign progress")
-	for i in range(50): step(0.05)
-	var old_clock := spawn_clock
-	var old_count := stage_spawned
+	circle.animate(3,10)
+	player.position = Vector3(0,0,2)
+	player.rotation.y = 0
+	cast_third_skill()
+	for i in range(65): update_third_skills(0.05)
+	check(is_equal_approx(circle_target.hp,900),"twelve frost pulses total one hundred circle damage")
+	for index in range(3):
+		start_game(index)
+		circle.animate(3,10)
+		player.position = Vector3(0,0,3)
+		var original: float = circle_target.hp
+		perform_attack(circle_target)
+		if index==0:
+			update_swings(0.09)
+			check(circle_target.hp==original,"melee circle damage waits for blade impact")
+			update_swings(0.02)
+		else:
+			check(circle_target.hp==original,"ranged circle damage waits for projectile impact")
+			update_shots(1)
+		check(circle_target.hp==original-HEROES[index].damage,"hero %d basic attack hits circle at full damage" % index)
+		original = circle_target.hp
+		player.position = Vector3(0,0,20)
+		area_damage(6,100)
+		check(circle_target.hp==original,"out-of-range area damage cannot hit circle")
+		if index!=1:
+			player.position = Vector3(0,0,7) if index==0 else Vector3(0,0,3)
+			direction = Vector3.FORWARD
+			skill(1)
+			check(circle_target.hp==original-60,"hero %d E deals half circle damage" % index)
 	playing = false
-	auto_test = false
-	_process(5)
-	auto_test = true
-	check(spawn_clock==old_clock and stage_spawned==old_count,"pause freezes campaign spawn timers and quotas")
 
 func combat_checks() -> void:
 	start_game(0)
@@ -1996,7 +2118,7 @@ func run_smoke_test() -> void:
 	for i in range(600):
 		invuln = 1
 		step(0.1)
-	check(stage_spawned>0 and stage_spawned<=Campaign.total(0) and elapsed>59,"60 second finite-wave simulation")
+	check(stage_spawned>0 and enemies.size()<=12 and elapsed>59,"60 second continuous circle-spawn simulation respects live cap")
 	start_game(0)
 	elapsed = 149.99
 	step(0.02)

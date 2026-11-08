@@ -1,5 +1,5 @@
 extends RefCounted
-## A finite, ordered campaign. Each entry is a spawn list, never an endless timer.
+## Ordered enemy patterns repeat while the energy circle remains intact.
 const TITLES = ["非洲草原", "埃及金字塔", "中国长城"]
 const SUBTITLES = ["日落草原 · 净化感染兽群", "沙海遗迹 · 唤醒的诅咒", "万里雄关 · 陶俑军阵"]
 const ENEMY_NAMES = [

@@ -20,7 +20,7 @@ def run(args):
     assert not re.search(r'(?:SCRIPT ERROR|ERROR:|FAIL:)', result.stdout), 'Engine errors'
     assert 'SMOKE TEST COMPLETE' in result.stdout, 'Suite did not complete'
     count = result.stdout.count('PASS:')
-    assert count == 398, f'Expected 398 checks, got {count}'
+    assert count == 461, f'Expected 461 checks, got {count}'
     return count
 
 print('SOURCE CHECKS')
