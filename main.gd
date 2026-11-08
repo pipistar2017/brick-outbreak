@@ -740,7 +740,8 @@ func update_campaign_spawns(delta: float) -> void:
 	if wave_spawned>=queue.size():
 		wave_spawned = 0
 		wave_index = (wave_index+1)%3
-	spawn_clock = 1.25
+	# Reduce spawn frequency by 20%: interval = previous interval / 0.8.
+	spawn_clock = 1.25/0.8
 
 func check_wave_clear() -> void:
 	if stage_cleared or not playing or choosing or not circle_destroyed: return

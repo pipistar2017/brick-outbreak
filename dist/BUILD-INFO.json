@@ -1,6 +1,6 @@
 {
-  "version": "0.8.0",
-  "runtime_sha256": "4e107de9c9f41810bd20b224c03f135c9569c42fd098c5e46e819df582e449ba",
-  "base_commit": "83cf0f7208bd498855d79532996be0e1ef3cbb64",
+  "version": "0.8.1",
+  "runtime_sha256": "5bf7e79e81a121ef2016ff4e2fb30ae96e09d637193f04ad0b16ff9a6a98c274",
+  "base_commit": "46ad81464f1239af717e52f68172e6ff1f9037ba",
   "note": "runtime_sha256 identifies the exact runtime files, including uncommitted changes"
 }

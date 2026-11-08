@@ -594,7 +594,7 @@ SMOKE TEST COMPLETE
 
 PASS: ZIP CRC, Info.plist, x86_64 + arm64, signature presence, executable permission
 Note: signature presence is not Apple signature validation or notarization.
-PASS: exported build manifest matches current runtime source fingerprint 4e107de9c9f41810bd20b224c03f135c9569c42fd098c5e46e819df582e449ba
+PASS: exported build manifest matches current runtime source fingerprint 5bf7e79e81a121ef2016ff4e2fb30ae96e09d637193f04ad0b16ff9a6a98c274
 EXPORTED RESOURCE CHECKS (Linux engine, not macOS binary)
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 

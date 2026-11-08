@@ -1,4 +1,4 @@
-Brick Outbreak MVP 0.8.0 — energy circles, redesigned enemies, click movement and galaxy ending
+Brick Outbreak MVP 0.8.1 — energy circles, redesigned enemies, click movement and galaxy ending
 Validated on Linux x86_64 / Godot 4.6.3.
 
 PASS: 589 source gameplay/model checks and the same 589 checks against exported PCK.
