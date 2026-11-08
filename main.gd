@@ -6,11 +6,13 @@ const ZombieVisual = preload("res://zombie_model.gd")
 const BattleCamera = preload("res://battle_camera.gd")
 const Campaign = preload("res://campaign_data.gd")
 const CampaignEnemy = preload("res://campaign_enemy.gd")
+const EnemyProjectile = preload("res://enemy_projectile.gd")
 const EnergyCircle = preload("res://energy_circle.gd")
 var circle: Node3D
 var circle_target: Dictionary = {}
 var circle_destroyed := false
 var circle_preview := -1
+var enemy_preview := -1
 
 const StageWorld = preload("res://stage_world.gd")
 var stage_index := 0
@@ -59,7 +61,8 @@ const ENEMIES = [
 	{"hp":40.0,"damage":8.0,"speed":2.8,"color":Color("a0ab78"),"scale":0.8},
 	{"hp":240.0,"damage":25.0,"speed":0.8,"color":Color("928a96"),"scale":1.45},
 	{"hp":80.0,"damage":15.0,"speed":1.0,"color":Color("a2aa62"),"scale":1.0},
-	{"hp":1800.0,"damage":30.0,"speed":1.15,"color":Color("687c65"),"scale":2.5}
+	{"hp":1800.0,"damage":30.0,"speed":1.15,"color":Color("687c65"),"scale":2.5},
+	{"hp":300.0,"damage":28.0,"speed":1.1,"color":Color("8b8d82"),"scale":1.35}
 ]
 var fx: Node3D
 var shots: Array = []
@@ -310,6 +313,11 @@ func _ready() -> void:
 		camera.position = Vector3(6,5.5,7)
 		camera.look_at(Vector3(0,1.1,0))
 		playing = false
+	for i in range(3):
+		if ("--enemy-preview="+str(i)) in OS.get_cmdline_user_args(): enemy_preview = i
+	if enemy_preview>=0:
+		gallery_stage = enemy_preview
+		show_zombie_gallery()
 	if auto_test:
 		start_game(0)
 
@@ -437,17 +445,17 @@ func show_zombie_gallery() -> void:
 	col.custom_minimum_size = Vector2(1160,0)
 	col.add_theme_constant_override("separation",12)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation",15)
+	row.add_theme_constant_override("separation",12)
 	col.add_child(row)
 	var names: Array = Campaign.ENEMY_NAMES[gallery_stage]
 	var descriptions: Array = [
-		["四足追猎 · 发光感染眼", "迅捷扑咬 · 低伏疾奔", "粗壮獠牙 · 背鬃护体", "浓密鬃毛 · 疫毒喷吐", "巨大雄狮 · 兽群首领"],
-		["层叠绷带 · 蹒跚追击", "豺首面具 · 快速追击", "王陵盾甲 · 高血量", "诅咒法杖 · 远程法球", "条纹王冠 · 法老首领"],
-		["陶土面孔 · 扎甲长兵", "轻装陶俑 · 快步追击", "层叠重甲 · 持盾守卫", "陶土弩手 · 远程弩箭", "将军冠盔 · 雄关首领"]
+		["近战挥爪", "快速近战扑击", "直线飞箭", "绿色小蛇 · 直线", "远程火球 · 近战爪击", "锁定方向 · 犀角冲撞"],
+		["近战利爪", "快速近战扑击", "直线飞箭", "蛇咒 · 直线小蛇", "火球与利爪", "蓄力冲撞"],
+		["陶土面孔 · 扎甲长兵", "轻装陶俑 · 快步追击", "层叠重甲 · 持盾守卫", "陶土弩手 · 远程弩箭", "将军冠盔 · 雄关首领", "投掷汉堡形状石弹"]
 	][gallery_stage]
-	for i in range(5):
+	for i in range(names.size()):
 		var card := PanelContainer.new()
-		card.custom_minimum_size = Vector2(220,0)
+		card.custom_minimum_size = Vector2(181,0)
 		var style := StyleBoxFlat.new()
 		style.bg_color = Color("111f28")
 		style.border_color = Campaign.COLORS[gallery_stage].darkened(0.3)
@@ -484,7 +492,7 @@ func show_zombie_gallery() -> void:
 
 func make_portrait(parent: Control, index: int, is_zombie := false) -> void:
 	var holder := SubViewportContainer.new()
-	holder.custom_minimum_size = Vector2(196,285) if is_zombie else Vector2(352,265)
+	holder.custom_minimum_size = Vector2(157,285) if is_zombie else Vector2(352,265)
 	holder.stretch = true
 	holder.mouse_default_cursor_shape = Control.CURSOR_DRAG
 	parent.add_child(holder)
@@ -539,7 +547,7 @@ func make_portrait(parent: Control, index: int, is_zombie := false) -> void:
 	portrait_rigs.append(model)
 	var cam := Camera3D.new()
 	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
-	cam.size = 3.9 if is_zombie else 3.85
+	cam.size = 5.5 if is_zombie and gallery_stage==2 and index==5 else 3.9 if is_zombie else 3.85
 	cam.position = Vector3(2.3,2.6,-5)
 	viewport.add_child(cam)
 	cam.look_at(Vector3(0,1.1 if is_zombie and gallery_stage==0 else 1.43,0))
@@ -564,6 +572,7 @@ func start_game(index: int) -> void:
 		e.node.queue_free()
 	enemies.clear()
 	for b in bullets:
+		if b.has("marker"): b.marker.queue_free()
 		b.node.queue_free()
 	bullets.clear()
 	if is_instance_valid(player):
@@ -634,6 +643,7 @@ func clear_battle() -> void:
 		e.node.queue_free()
 	enemies.clear()
 	for b in bullets:
+		if b.has("marker"): b.marker.queue_free()
 		b.node.hide()
 		b.node.queue_free()
 	bullets.clear()
@@ -1181,6 +1191,12 @@ func setup_camera_scene(index: int) -> void:
 	update_view_ui()
 
 func _process(delta: float) -> void:
+	if enemy_preview>=0:
+		preview_frames += 1
+		if preview_frames==12:
+			get_viewport().get_texture().get_image().save_png("/workspace/brick-build/enemies-%d.png" % enemy_preview)
+			get_tree().quit()
+		return
 	if circle_preview>=0:
 		preview_frames += 1
 		if preview_frames==8:
@@ -1294,6 +1310,88 @@ func _process(delta: float) -> void:
 		return
 	step(1.0/60.0 if combat_preview>=0 else delta)
 
+func launch_enemy_projectile(e: Dictionary, form: String) -> void:
+	var origin: Vector3 = e.node.mouth_position()
+	var target := player.position+Vector3(0,1.0,0)
+	var aim := (target-origin).normalized()
+	var visual := EnemyProjectile.new()
+	visual.build(form)
+	world.add_child(visual)
+	visual.position = origin
+	if form!="catapult": visual.look_at(origin+aim)
+	var shot := {"node":visual,"velocity":aim*6,"time":3.0,"damage":e.data.damage,"form":form}
+	if form=="catapult":
+		shot.origin = origin
+		shot.target = player.position
+		shot.age = 0.0
+		shot.duration = clampf(origin.distance_to(target)/9.0,0.8,1.8)
+		shot.marker = MeshInstance3D.new()
+		var mesh := TorusMesh.new()
+		mesh.inner_radius = 1.35
+		mesh.outer_radius = 1.50
+		mesh.rings = 24
+		mesh.ring_segments = 6
+		shot.marker.mesh = mesh
+		shot.marker.material_override = HeroVisual.mat(Color("ff9567"),false,true)
+		shot.marker.position = shot.target+Vector3(0,0.08,0)
+		world.add_child(shot.marker)
+	bullets.append(shot)
+	fx.muzzle(origin,aim,Color("62df75") if form=="snake" else Color("ffc16b"))
+
+func update_enemy_projectiles(delta: float) -> void:
+	for b in bullets:
+		b.time -= delta
+		if b.get("form","")=="catapult":
+			b.age += delta
+			var t := clampf(b.age/b.duration,0,1)
+			b.node.position = b.origin.lerp(b.target,t)+Vector3(0,sin(t*PI)*5.0,0)
+			b.node.rotation.y += delta*2.5
+			if t>=1:
+				fx.impact(b.target,Color("c7aa79"),true)
+				if player.position.distance_to(b.target)<=1.5: damage_player(b.damage)
+				b.time = 0
+		else:
+			var before: Vector3 = b.node.position
+			b.node.position += b.velocity*delta
+			var closest := Geometry3D.get_closest_point_to_segment(player.position+Vector3(0,1,0),before,b.node.position)
+			if closest.distance_to(player.position+Vector3(0,1,0))<0.7:
+				damage_player(b.damage)
+				b.time = 0
+	for i in range(bullets.size()-1,-1,-1):
+		if bullets[i].time<=0:
+			bullets[i].node.queue_free()
+			if bullets[i].has("marker"): bullets[i].marker.queue_free()
+			bullets.remove_at(i)
+
+func begin_enemy_charge(e: Dictionary) -> void:
+	e.cooldown = 4.0
+	e.charge_wait = 0.65
+	e.charge_time = 0.85
+	e.charge_dir = (player.position-e.node.position).normalized()
+	e.charge_hit = false
+	fx.wave(e.node.position,1.5,Color("ffba66"),0.65)
+	fx.bolt(e.node.position+Vector3(0,0.1,0),e.node.position+e.charge_dir*9+Vector3(0,0.1,0),Color("ff8058"),0.65)
+
+func update_enemy_charge(e: Dictionary, delta: float) -> bool:
+	if e.get("charge_time",0.0)<=0: return false
+	if e.charge_wait>0:
+		e.charge_wait = maxf(0,e.charge_wait-delta)
+		e.node.animate(delta,false,e.slow>0)
+		return true
+	var time := minf(delta,e.charge_time)
+	e.charge_time -= time
+	var before: Vector3 = e.node.position
+	e.node.position += e.charge_dir*11.0*(0.5 if e.slow>0 else 1.0)*time
+	e.node.position.x = clampf(e.node.position.x,-21,21)
+	e.node.position.z = clampf(e.node.position.z,-21,21)
+	e.node.rotation.y = atan2(-e.charge_dir.x,-e.charge_dir.z)
+	e.node.attack()
+	e.node.animate(time,true,e.slow>0)
+	if not e.charge_hit and Geometry3D.get_closest_point_to_segment(player.position,before,e.node.position).distance_to(player.position)<1.2:
+		e.charge_hit = true
+		damage_player(e.data.damage)
+	return true
+
 func step(delta: float) -> void:
 	elapsed += delta
 	attack_clock -= delta
@@ -1336,43 +1434,29 @@ func step(delta: float) -> void:
 		node.set_overlay(white_flash if e.flash>0 else ice_overlay if e.slow>0 else null)
 		e.cooldown -= delta
 		e.slow = maxf(0,e.slow-delta)
-		var stop_distance := 8.0 if e.kind==3 else 1.0
+		var ranged: bool = data.attack in ["arrow","snake","catapult"] or (data.attack=="hybrid" and distance>3.2*data.scale)
+		var stop_distance := 8.0 if ranged else 1.0
+		if update_enemy_charge(e,delta): continue
 		node.animate(delta,distance>stop_distance,e.slow>0)
 		if distance>stop_distance:
 			node.position += offset.normalized()*data.speed*delta*(0.5 if e.slow>0 else 1.0)
 			for other in enemies:
-				if other == e or other.get("dead",false):
-					continue
+				if other == e or other.get("dead",false): continue
 				var apart: Vector3 = node.position-other.node.position
 				if apart.length()>0.01 and apart.length()<0.7:
 					node.position += apart.normalized()*delta*1.5
-		if offset.length()>0.01:
-			node.rotation.y = atan2(-offset.x,-offset.z)
-		if distance < (12.0 if e.kind==3 else 1.5*data.scale) and e.cooldown<=0:
-			e.cooldown = 2.5 if e.kind==3 else 1.5
-			node.attack()
-			if e.kind==3:
-				var origin: Vector3 = node.mouth_position()
-				var aim := (player.position+Vector3(0,1.15,0)-origin).normalized()
-				var b := MeshInstance3D.new()
-				var tint: Color = [Color("c5ed6a"),Color("d99beb"),Color("e8c493")][stage_index]
-				if stage_index==2:
-					var arrow := BoxMesh.new()
-					arrow.size = Vector3(0.08,0.08,0.95)
-					b.mesh = arrow
+		if offset.length()>0.01: node.rotation.y = atan2(-offset.x,-offset.z)
+		if e.cooldown<=0:
+			if data.attack=="charge" and distance<11 and distance>0.1:
+				begin_enemy_charge(e)
+			elif distance<(16.0 if data.attack=="catapult" else 12.0 if ranged else 1.5*data.scale):
+				e.cooldown = 4.0 if data.attack=="catapult" else 2.5 if ranged else 1.5
+				node.attack()
+				if ranged:
+					launch_enemy_projectile(e,"fireball" if data.attack=="hybrid" else data.attack)
 				else:
-					var glob := SphereMesh.new()
-					glob.radius = 0.20
-					glob.height = 0.40
-					b.mesh = glob
-				b.material_override = HeroVisual.mat(tint,false,true)
-				b.position = origin
-				world.add_child(b)
-				b.look_at(origin+aim)
-				fx.muzzle(origin,aim,tint)
-				bullets.append({"node":b,"velocity":aim*6,"time":3.0,"damage":data.damage})
-			else:
-				damage_player(data.damage)
+					fx.slash(node.position,node.rotation.y,1.5*data.scale,Color("ffb86e"))
+					damage_player(data.damage)
 	if is_instance_valid(circle) and circle.landed and not circle_destroyed:
 		var circle_distance := player.position.length()
 		if circle_distance<nearest_distance:
@@ -1392,16 +1476,7 @@ func step(delta: float) -> void:
 	banner_time = maxf(0,banner_time-delta)
 	banner.modulate.a = minf(1,banner_time*3)
 	banner_hint.modulate.a = banner.modulate.a
-	for b in bullets:
-		b.time -= delta
-		b.node.position += b.velocity*delta
-		if b.node.position.distance_to(player.position+Vector3(0,1,0))<0.7:
-			damage_player(b.damage)
-			b.time = 0
-	for i in range(bullets.size()-1,-1,-1):
-		if bullets[i].time<=0:
-			bullets[i].node.queue_free()
-			bullets.remove_at(i)
+	update_enemy_projectiles(delta)
 	for i in range(enemies.size()-1,-1,-1):
 		if enemies[i].get("dead",false):
 			enemies.remove_at(i)
@@ -1552,10 +1627,10 @@ func campaign_visual_checks() -> void:
 		start_game(0)
 		begin_stage(stage)
 		var budget := true
-		for kind in range(5):
+		for kind in range(6):
 			var e := spawn_enemy(kind)
 			var model: Node3D = e.node
-			check(model.stage==stage and model.identity==kind and model.details>40,"stage %d enemy %d uses its themed articulated model" % [stage,kind])
+			check(model.stage==stage and model.identity==kind and (model.snake_segments.size()==12 if stage==0 and kind==3 else model.details>40),"stage %d enemy %d uses its themed articulated model" % [stage,kind])
 			budget = budget and model.meshes.size()<=48 and model.meshes.size()<model.details
 			model.phase = 0
 			model.animate(0,false)
@@ -1583,7 +1658,7 @@ func campaign_visual_checks() -> void:
 			check(copy.meshes[0].mesh==model.meshes[0].mesh,"stage %d enemy %d shares baked geometry within its type" % [stage,kind])
 			copy.free()
 			if stage==0:
-				check(model.rear_legs.size()==2 and model.tail!=null and model.arm_l==null,"infected animal %d has four legs and a tail instead of human arms" % kind)
+				check((model.snake_segments.size()==12 if kind==3 else model.rear_legs.size()==2) and model.tail!=null and model.arm_l==null,"infected animal %d has a species-specific skeleton without human arms" % kind)
 		check(budget,"stage %d enemy render mesh count stays bounded" % stage)
 		var model: Node3D = enemies[0].node
 		var before_phase: float = model.phase
@@ -1602,10 +1677,10 @@ func campaign_visual_checks() -> void:
 		check(is_equal_approx(hp,max_hp-ranged.data.damage) and bullets.is_empty(),"stage %d projectile reaches and damages the player once" % stage)
 		gallery_stage = stage
 		show_zombie_gallery()
-		var correct: bool = portrait_rigs.size()==5
+		var correct: bool = portrait_rigs.size()==6
 		for i in range(portrait_rigs.size()):
 			correct = correct and portrait_rigs[i] is CampaignEnemy and portrait_rigs[i].stage==stage and portrait_rigs[i].identity==i
-		check(correct,"stage %d bestiary uses all five actual battle models" % stage)
+		check(correct,"stage %d bestiary uses all six actual battle models" % stage)
 		var portrait: Node3D = portrait_rigs[0]
 		var yaw := portrait.rotation.y
 		var motion := InputEventMouseMotion.new()
@@ -1831,7 +1906,7 @@ func combat_checks() -> void:
 
 func balance_checks() -> void:
 	for stage in range(3):
-		for kind in range(5):
+		for kind in range(6):
 			var base: Dictionary = ENEMIES[kind].duplicate()
 			var normal := Campaign.stats(stage,kind,base,1)
 			var easy := Campaign.stats(stage,kind,base,0)
@@ -2022,6 +2097,97 @@ func third_skill_checks() -> void:
 	start_game(0)
 	check(w_clock==0 and ultimate_jobs.is_empty() and frost_age<0 and armor_bonus==0,"restart resets third skills, channels and additional armour")
 
+func enemy_attack_checks() -> void:
+	for stage in range(3):
+		start_game(0)
+		begin_stage(stage)
+		spawn_clock = 100
+		attack_clock = 100
+		check(Campaign.ENEMY_NAMES[stage].size()==6,"stage %d has six enemies in roster" % stage)
+		var roster: Array = []
+		for wave in Campaign.WAVES[stage]:
+			for kind in wave:
+				if kind not in roster: roster.append(kind)
+		check(roster.size()==6,"stage %d spawn patterns include every enemy" % stage)
+		for kind in [2,3,4] if stage<2 else [3]:
+			var enemy := spawn_enemy(kind)
+			enemy.node.position = Vector3(0,0,-8)
+			var form: String = "fireball" if kind==4 else enemy.data.attack
+			launch_enemy_projectile(enemy,form)
+			var shot: Dictionary = bullets.back()
+			var velocity: Vector3 = shot.velocity
+			var before: Vector3 = shot.node.position
+			player.position = Vector3(10,0,0)
+			update_enemy_projectiles(0.1)
+			check(shot.node.form==form and shot.velocity==velocity and shot.node.position.is_equal_approx(before+velocity*0.1),"stage %d %s projectile keeps its launch direction after hero moves" % [stage,form])
+			clear_battle()
+			player.position = Vector3.ZERO
+		if stage<2:
+			var boss := spawn_enemy(4)
+			boss.node.position = Vector3(0,0,-8)
+			boss.cooldown = 0
+			step(0.01)
+			check(bullets.size()==1 and bullets[0].form=="fireball","stage %d boss uses ranged fireballs" % stage)
+			clear_battle()
+			boss = spawn_enemy(4)
+			boss.node.position = Vector3(0,0,-1)
+			boss.cooldown = 0
+			invuln = 0
+			var previous := hp
+			step(0.01)
+			check(hp==previous-boss.data.damage and bullets.is_empty(),"stage %d boss switches to close claw attack" % stage)
+			clear_battle()
+			var charger := spawn_enemy(5)
+			charger.node.position = Vector3(0,0,-7)
+			begin_enemy_charge(charger)
+			var heading: Vector3 = charger.charge_dir
+			var start: Vector3 = charger.node.position
+			update_enemy_charge(charger,0.3)
+			check(charger.node.position==start,"stage %d charge has a stationary warning phase" % stage)
+			player.position = Vector3(6,0,0)
+			update_enemy_charge(charger,0.4)
+			previous = hp
+			update_enemy_charge(charger,1)
+			check(charger.charge_dir==heading and hp==previous and charger.node.position.z>start.z,"stage %d charge is directional and can be dodged" % stage)
+			player.position = Vector3.ZERO
+			charger.node.position = Vector3(0,0,-4)
+			begin_enemy_charge(charger)
+			update_enemy_charge(charger,0.7)
+			invuln = 0
+			previous = hp
+			update_enemy_charge(charger,0.5)
+			check(hp==previous-charger.data.damage and charger.charge_hit,"stage %d charge sweeps through and damages hero once" % stage)
+			clear_battle()
+		else:
+			var siege := spawn_enemy(5)
+			check(siege.node.wheels.size()==4 and is_instance_valid(siege.node.launch_arm),"terracotta catapult has four wheels and animated throwing arm")
+			siege.node.position = Vector3(0,0,-10)
+			launch_enemy_projectile(siege,"catapult")
+			var shot: Dictionary = bullets.back()
+			check(shot.target==Vector3.ZERO and shot.node.get_child_count()>=12 and is_instance_valid(shot.marker),"hamburger-shaped stone snapshots hero location and marks impact zone")
+			player.position = Vector3(5,0,0)
+			var previous := hp
+			update_enemy_projectiles(0.4)
+			check(shot.target==Vector3.ZERO and shot.node.position.y>shot.origin.lerp(shot.target,shot.age/shot.duration).y,"catapult follows a fixed parabolic arc")
+			update_enemy_projectiles(2)
+			check(hp==previous and bullets.is_empty(),"hero can leave the marked stone impact zone to avoid damage")
+			player.position = Vector3.ZERO
+			launch_enemy_projectile(siege,"catapult")
+			invuln = 0
+			update_enemy_projectiles(2)
+			check(hp==previous-siege.data.damage and bullets.is_empty(),"stone deals damage once at its original landing zone")
+			launch_enemy_projectile(siege,"catapult")
+			shot = bullets.back()
+			playing = false
+			auto_test = false
+			_process(0.1)
+			auto_test = true
+			check(shot.age==0,"pause freezes catapult flight")
+			var marker: Node = shot.marker
+			clear_battle()
+			check(marker.is_queued_for_deletion() and bullets.is_empty(),"battle cleanup removes catapult projectile and landing marker")
+	playing = false
+
 func run_smoke_test() -> void:
 	if test_steps>0:
 		return
@@ -2141,5 +2307,6 @@ func run_smoke_test() -> void:
 	camera_checks()
 	balance_checks()
 	third_skill_checks()
+	enemy_attack_checks()
 	print("SMOKE TEST COMPLETE")
 	get_tree().quit(0)
